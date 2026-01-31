@@ -1,192 +1,116 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, ArrowLeft, RefreshCw, Check, Wand2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import StepIndicator from '@/components/shared/StepIndicator';
-import GlowButton from '@/components/shared/GlowButton';
-import NeoCard from '@/components/shared/NeoCard';
-import SparkleDecoration from '@/components/shared/SparkleDecoration';
+import FloatingShapes from '../components/ui/FloatingShapes';
+import ProgressSteps from '../components/ui/ProgressSteps';
+import ImageRefiner from '../components/refine/ImageRefiner';
 import { createPageUrl } from '@/utils';
+import { Loader2 } from 'lucide-react';
 
-export default function RefinePage() {
-  const [originalImage, setOriginalImage] = useState(null);
-  const [processedImage, setProcessedImage] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showOriginal, setShowOriginal] = useState(false);
+export default function Refine() {
+  const [project, setProject] = useState(null);
+  const [originalFile, setOriginalFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const imageUrl = params.get('image');
-    if (imageUrl) {
-      setOriginalImage(imageUrl);
-      processImage(imageUrl);
-    }
+    loadProject();
   }, []);
 
-  const processImage = async (imageUrl) => {
-    setIsProcessing(true);
+  const loadProject = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectId = urlParams.get('projectId');
+    
+    if (!projectId) {
+      navigate(createPageUrl('Upload'));
+      return;
+    }
+
     try {
-      const result = await base44.integrations.Core.GenerateImage({
-        prompt: `Remove the background from this clothing item image completely. Keep ONLY the clothing item itself with a pure transparent/white background. Maintain all details, colors, and textures of the garment. The result should be a clean cutout of just the clothing piece, ready for pattern-making reference.`,
-        existing_image_urls: [imageUrl]
-      });
-      setProcessedImage(result.url);
+      const projects = await base44.entities.Project.filter({ id: projectId });
+      if (projects && projects.length > 0) {
+        setProject(projects[0]);
+        
+        // Fetch the original image as a file
+        const response = await fetch(projects[0].original_image_url);
+        const blob = await response.blob();
+        const file = new File([blob], 'original.jpg', { type: blob.type });
+        setOriginalFile(file);
+      } else {
+        navigate(createPageUrl('Upload'));
+      }
     } catch (error) {
-      console.error('Processing failed:', error);
-    }
-    setIsProcessing(false);
-  };
-
-  const handleRefine = () => {
-    if (originalImage) {
-      processImage(originalImage);
+      console.error('Error loading project:', error);
+      navigate(createPageUrl('Upload'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleContinue = () => {
-    const imageToUse = processedImage || originalImage;
-    navigate(createPageUrl('Measurements') + `?image=${encodeURIComponent(imageToUse)}`);
+  const handleRefinementComplete = async (refinedImageUrl) => {
+    try {
+      await base44.entities.Project.update(project.id, {
+        refined_image_url: refinedImageUrl,
+        status: 'refined'
+      });
+      
+      navigate(createPageUrl('Measurements') + `?projectId=${project.id}`);
+    } catch (error) {
+      console.error('Error saving refinement:', error);
+    }
   };
 
-  const handleBack = () => {
-    navigate(createPageUrl('Upload'));
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        >
+          <Loader2 className="w-12 h-12 text-purple-500" />
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#D0F4FF] via-[#E8D5FF] to-[#FFD6E8] p-4 md:p-8 relative overflow-hidden">
-      <SparkleDecoration />
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
+      <FloatingShapes />
       
-      <div className="max-w-4xl mx-auto relative z-10">
+      <div className="relative z-10 container mx-auto px-4 py-8">
         <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="text-center mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
         >
-          <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#9B5DE5] via-[#00F5D4] to-[#B8F83A] mb-2"
-              style={{ WebkitTextStroke: '1px black' }}>
-            ✨ Refine Your Image ✨
+          <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent drop-shadow-lg">
+            ✨ Print Your Fit ✨
           </h1>
+          <p className="text-lg text-gray-700 mt-2 font-medium">
+            AI is refining your image
+          </p>
         </motion.div>
 
-        <StepIndicator currentStep={2} />
+        <ProgressSteps currentStep={2} />
 
-        <NeoCard className="p-6 md:p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00F5D4] border-4 border-black flex items-center justify-center shadow-[4px_4px_0_0_#000]">
-              <Wand2 className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-black text-black">AI Background Removal</h2>
-              <p className="text-sm font-semibold text-[#9B5DE5]">Magic happening! ✨</p>
-            </div>
-          </div>
-
-          <div className="relative">
-            <AnimatePresence mode="wait">
-              {isProcessing ? (
-                <motion.div
-                  key="processing"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="aspect-square max-w-md mx-auto rounded-2xl border-4 border-black bg-gradient-to-br from-[#FFD6E8] to-[#E8D5FF] flex flex-col items-center justify-center shadow-[8px_8px_0_0_#000]"
-                >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
-                    className="w-24 h-24 rounded-full border-8 border-[#9B5DE5] border-t-[#00F5D4] mb-4"
-                  />
-                  <motion.p
-                    animate={{ opacity: [1, 0.5, 1] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="text-xl font-black text-[#9B5DE5]"
-                  >
-                    Removing background...
-                  </motion.p>
-                  <div className="flex gap-1 mt-2">
-                    {['#FF6B9D', '#9B5DE5', '#00F5D4', '#FEE440'].map((color, i) => (
-                      <motion.div
-                        key={color}
-                        animate={{ y: [0, -10, 0] }}
-                        transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="result"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="relative"
-                >
-                  {/* Image comparison */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* Original */}
-                    <div className="relative">
-                      <p className="text-center font-black text-[#9B5DE5] mb-2">Original</p>
-                      <div className="rounded-2xl border-4 border-black overflow-hidden shadow-[6px_6px_0_0_#000] bg-white">
-                        {originalImage && (
-                          <img 
-                            src={originalImage} 
-                            alt="Original" 
-                            className="w-full aspect-square object-contain"
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Processed */}
-                    <div className="relative">
-                      <p className="text-center font-black text-[#00F5D4] mb-2">✨ Refined ✨</p>
-                      <div className="rounded-2xl border-4 border-black overflow-hidden shadow-[6px_6px_0_0_#000] bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2210%22%20height%3D%2210%22%20fill%3D%22%23f0f0f0%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%2210%22%20height%3D%2210%22%20fill%3D%22%23f0f0f0%22%2F%3E%3C%2Fsvg%3E')]">
-                        {processedImage ? (
-                          <img 
-                            src={processedImage} 
-                            alt="Processed" 
-                            className="w-full aspect-square object-contain"
-                          />
-                        ) : (
-                          <div className="w-full aspect-square flex items-center justify-center">
-                            <p className="font-bold text-gray-400">Processing...</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {!isProcessing && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-8 flex flex-col sm:flex-row justify-center gap-4"
-            >
-              <GlowButton onClick={handleBack} variant="secondary">
-                <ArrowLeft className="w-5 h-5" />
-                Back
-              </GlowButton>
-              
-              <GlowButton onClick={handleRefine} variant="secondary">
-                <RefreshCw className="w-5 h-5" />
-                Refine Again
-              </GlowButton>
-              
-              <GlowButton onClick={handleContinue}>
-                <Check className="w-5 h-5" />
-                Accept & Continue
-                <ArrowRight className="w-5 h-5" />
-              </GlowButton>
-            </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mt-8"
+        >
+          {originalFile && (
+            <ImageRefiner 
+              originalImage={originalFile}
+              onRefinementComplete={handleRefinementComplete}
+            />
           )}
-        </NeoCard>
+        </motion.div>
+
+        {/* Decorative elements */}
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-400/30 to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-bl from-pink-400/30 to-transparent rounded-full blur-3xl" />
       </div>
     </div>
   );
