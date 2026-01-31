@@ -1,57 +1,81 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Download, FileText, Ruler, Scissors, BookOpen, RotateCcw, ZoomIn, ZoomOut, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Download, FileText, Ruler, Scissors, BookOpen, Loader2, Settings, Sparkles } from 'lucide-react';
 import GlowCard from '../ui/GlowCard';
 import GlowButton from '../ui/GlowButton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { base44 } from '@/api/base44Client';
-import * as THREE from 'three';
+import PatternCustomizer, { fabricTypes, styleModifiers, seamFinishes } from './PatternCustomizer';
+import Interactive3DViewer from './Interactive3DViewer';
 
 export default function PatternViewer({ refinedImage, measurements, clothingType }) {
-  const [isGenerating, setIsGenerating] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [patternData, setPatternData] = useState(null);
-  const [activeTab, setActiveTab] = useState('sketch');
-  const threeContainerRef = useRef(null);
-  const sceneRef = useRef(null);
-
-  useEffect(() => {
-    generatePattern();
-  }, []);
-
-  useEffect(() => {
-    if (patternData && threeContainerRef.current && !sceneRef.current) {
-      init3DScene();
-    }
-    return () => {
-      if (sceneRef.current) {
-        sceneRef.current.dispose?.();
-      }
-    };
-  }, [patternData]);
+  const [activeTab, setActiveTab] = useState('customize');
+  const [showCustomizer, setShowCustomizer] = useState(true);
+  const [modelAdjustments, setModelAdjustments] = useState(null);
+  
+  // Customization options
+  const [customOptions, setCustomOptions] = useState({
+    fabricType: 'woven',
+    styleModifier: 'classic',
+    seamFinish: 'serged',
+  });
 
   const generatePattern = async () => {
+    setIsGenerating(true);
+    setActiveTab('sketch');
+    
     try {
-      // Generate pattern details using AI
+      const fabricInfo = fabricTypes.find(f => f.value === customOptions.fabricType);
+      const styleInfo = styleModifiers.find(s => s.value === customOptions.styleModifier);
+      const seamInfo = seamFinishes.find(s => s.value === customOptions.seamFinish);
+
+      // Generate pattern details using AI with customization
       const patternResult = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are a professional pattern maker. Create detailed sewing pattern instructions for a ${clothingType}.
+        prompt: `You are a professional pattern maker. Create detailed sewing pattern instructions for a ${clothingType} with the following customizations:
+
+FABRIC TYPE: ${fabricInfo?.label || customOptions.fabricType}
+- ${fabricInfo?.description || ''}
+
+STYLE: ${styleInfo?.label || customOptions.styleModifier} (${customOptions.styleModifier})
+- Adjust the pattern to reflect this style. For example:
+  - Vintage: Add darts, fitted waist, classic proportions
+  - Modern: Clean lines, minimal details, contemporary fit
+  - Oversized: Extra ease throughout, dropped shoulders, relaxed fit
+  - Fitted: Closer to body measurements, more darts/shaping
+  - Minimalist: Fewer pattern pieces, simple construction
+
+SEAM FINISHING: ${seamInfo?.label || customOptions.seamFinish}
+- ${seamInfo?.description || ''}
+- Incorporate this finishing technique into ALL seam instructions
 
 Measurements provided (in ${measurements.unit}):
-${Object.entries(measurements.measurements).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
+${Object.entries(measurements.values || {}).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
+
+${modelAdjustments ? `
+ADJUSTED PROPORTIONS:
+- Length scale: ${Math.round(modelAdjustments.lengthScale * 100)}%
+- Width scale: ${Math.round(modelAdjustments.widthScale * 100)}%
+- Sleeve scale: ${Math.round(modelAdjustments.sleeveScale * 100)}%
+Adjust all pattern piece dimensions accordingly.
+` : ''}
 
 Generate comprehensive pattern data including:
-1. A flat sketch description (how the pattern pieces should look laid out)
-2. All pattern pieces needed with dimensions
-3. Seam allowances
+1. A flat sketch description reflecting the ${customOptions.styleModifier} style
+2. All pattern pieces with dimensions adjusted for ${customOptions.fabricType} fabric (seam allowances may vary)
+3. Specific instructions for ${customOptions.seamFinish} seam finishing on every seam
 4. Grain line directions
 5. Notch placements
-6. Step-by-step sewing instructions
-7. Fabric recommendations
-8. Estimated fabric yardage needed`,
+6. Step-by-step sewing instructions optimized for ${customOptions.fabricType} fabric
+7. Fabric recommendations within the ${customOptions.fabricType} category
+8. Tips specific to working with ${customOptions.fabricType} and achieving the ${customOptions.styleModifier} look`,
         file_urls: [refinedImage],
         response_json_schema: {
           type: "object",
           properties: {
             garment_name: { type: "string" },
+            style_notes: { type: "string" },
             flat_sketch_description: { type: "string" },
             pattern_pieces: {
               type: "array",
@@ -62,11 +86,13 @@ Generate comprehensive pattern data including:
                   quantity: { type: "number" },
                   dimensions: { type: "string" },
                   grain_direction: { type: "string" },
-                  notches: { type: "array", items: { type: "string" } }
+                  notches: { type: "array", items: { type: "string" } },
+                  seam_allowance: { type: "string" }
                 }
               }
             },
             seam_allowance: { type: "string" },
+            seam_finishing_notes: { type: "string" },
             fabric_recommendations: { type: "array", items: { type: "string" } },
             fabric_yardage: { type: "string" },
             difficulty_level: { type: "string" },
@@ -78,40 +104,50 @@ Generate comprehensive pattern data including:
                 properties: {
                   step: { type: "number" },
                   title: { type: "string" },
-                  description: { type: "string" }
+                  description: { type: "string" },
+                  seam_finish_tip: { type: "string" }
                 }
               }
             },
-            tips: { type: "array", items: { type: "string" } }
+            tips: { type: "array", items: { type: "string" } },
+            style_specific_details: { type: "array", items: { type: "string" } }
           }
         }
       });
 
       // Generate flat sketch image
       const sketchResult = await base44.integrations.Core.GenerateImage({
-        prompt: `Technical flat sketch fashion illustration of a ${clothingType}. 
+        prompt: `Technical flat sketch fashion illustration of a ${customOptions.styleModifier} ${clothingType}. 
         ${patternResult.flat_sketch_description}.
         Style: Clean black line drawing on white background, professional fashion technical drawing, 
-        front view, showing all seams, darts, and construction details.
+        ${customOptions.styleModifier} aesthetic, front view, showing all seams, darts, and construction details.
+        ${customOptions.styleModifier === 'vintage' ? 'Classic proportions, fitted details, retro elements.' : ''}
+        ${customOptions.styleModifier === 'modern' ? 'Clean minimalist lines, contemporary silhouette.' : ''}
+        ${customOptions.styleModifier === 'oversized' ? 'Relaxed fit, dropped shoulders, extra volume.' : ''}
         No shading, pure technical illustration style.`,
         existing_image_urls: [refinedImage]
       });
 
       // Generate pattern layout image
       const patternLayoutResult = await base44.integrations.Core.GenerateImage({
-        prompt: `Sewing pattern layout diagram for a ${clothingType}.
+        prompt: `Sewing pattern layout diagram for a ${customOptions.styleModifier} ${clothingType}.
         Pattern pieces arranged efficiently showing:
         ${patternResult.pattern_pieces?.map(p => `- ${p.name} (cut ${p.quantity})`).join('\n')}
         Style: Technical pattern diagram, black outlines on white/cream background,
         showing grain lines as arrows, notches as small triangles,
-        fold lines as dashed lines, clean professional pattern drafting style.`
+        fold lines as dashed lines, seam allowances marked,
+        clean professional pattern drafting style.
+        Include labels for each piece.`
       });
 
       setPatternData({
         ...patternResult,
         flat_sketch_url: sketchResult.url,
-        pattern_layout_url: patternLayoutResult.url
+        pattern_layout_url: patternLayoutResult.url,
+        customOptions: { ...customOptions }
       });
+      
+      setShowCustomizer(false);
     } catch (error) {
       console.error('Error generating pattern:', error);
     } finally {
@@ -119,141 +155,121 @@ Generate comprehensive pattern data including:
     }
   };
 
-  const init3DScene = () => {
-    if (!threeContainerRef.current) return;
-
-    const container = threeContainerRef.current;
-    const width = container.clientWidth;
-    const height = 400;
-
-    // Scene setup
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xfce7f3);
-
-    // Camera
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 5);
-
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(width, height);
-    container.appendChild(renderer.domElement);
-
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 5, 5);
-    scene.add(directionalLight);
-
-    // Create clothing mesh based on type
-    let geometry;
-    switch (clothingType) {
-      case 'top':
-        geometry = new THREE.BoxGeometry(2, 2.5, 0.3);
-        break;
-      case 'bottom':
-        geometry = new THREE.CylinderGeometry(0.8, 0.6, 3, 8);
-        break;
-      case 'dress':
-        geometry = new THREE.ConeGeometry(1.2, 3.5, 8);
-        break;
-      case 'outerwear':
-        geometry = new THREE.BoxGeometry(2.2, 2.8, 0.5);
-        break;
-      case 'jumpsuit':
-        geometry = new THREE.CapsuleGeometry(0.8, 2.5, 4, 8);
-        break;
-      default:
-        geometry = new THREE.BoxGeometry(2, 2.5, 0.3);
-    }
-
-    // Gradient material
-    const material = new THREE.MeshPhongMaterial({
-      color: 0xe9d5ff,
-      shininess: 30,
-      transparent: true,
-      opacity: 0.9
-    });
-
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-
-    // Wireframe overlay
-    const wireframeMaterial = new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.3
-    });
-    const wireframe = new THREE.Mesh(geometry.clone(), wireframeMaterial);
-    scene.add(wireframe);
-
-    // Animation
-    const animate = () => {
-      requestAnimationFrame(animate);
-      mesh.rotation.y += 0.005;
-      wireframe.rotation.y += 0.005;
-      renderer.render(scene, camera);
-    };
-    animate();
-
-    sceneRef.current = { scene, renderer, dispose: () => {
-      renderer.dispose();
-      container.removeChild(renderer.domElement);
-    }};
-  };
-
   const handleDownload = () => {
-    // Create downloadable content
+    if (!patternData) return;
+    
+    const fabricInfo = fabricTypes.find(f => f.value === patternData.customOptions?.fabricType);
+    const styleInfo = styleModifiers.find(s => s.value === patternData.customOptions?.styleModifier);
+    const seamInfo = seamFinishes.find(s => s.value === patternData.customOptions?.seamFinish);
+
     const content = `
-PRINT YOUR FIT - SEWING PATTERN
-================================
+╔══════════════════════════════════════════════════════════════╗
+║           ✨ PRINT YOUR FIT - SEWING PATTERN ✨              ║
+╚══════════════════════════════════════════════════════════════╝
 
-${patternData?.garment_name || clothingType.toUpperCase()}
+PATTERN: ${patternData?.garment_name || clothingType.toUpperCase()}
+STYLE: ${styleInfo?.label || 'Classic'} ${styleInfo?.emoji || ''}
+═══════════════════════════════════════════════════════════════
 
-MEASUREMENTS:
-${Object.entries(measurements.measurements).map(([k, v]) => `${k}: ${v} ${measurements.unit}`).join('\n')}
+CUSTOMIZATION DETAILS
+─────────────────────
+• Fabric Type: ${fabricInfo?.label || 'Woven'}
+  ${fabricInfo?.description || ''}
 
-PATTERN PIECES:
+• Style Modifier: ${styleInfo?.label || 'Classic'}
+  ${patternData?.style_notes || ''}
+
+• Seam Finishing: ${seamInfo?.label || 'Serged'}
+  ${seamInfo?.description || ''}
+  ${patternData?.seam_finishing_notes || ''}
+
+═══════════════════════════════════════════════════════════════
+
+YOUR MEASUREMENTS
+─────────────────
+${Object.entries(measurements.values || {}).map(([k, v]) => `• ${k}: ${v} ${measurements.unit}`).join('\n')}
+
+${modelAdjustments ? `
+ADJUSTED PROPORTIONS
+────────────────────
+• Length: ${Math.round(modelAdjustments.lengthScale * 100)}%
+• Width: ${Math.round(modelAdjustments.widthScale * 100)}%
+• Sleeves: ${Math.round(modelAdjustments.sleeveScale * 100)}%
+` : ''}
+
+═══════════════════════════════════════════════════════════════
+
+PATTERN PIECES
+──────────────
 ${patternData?.pattern_pieces?.map(p => `
-• ${p.name} (Cut ${p.quantity})
-  Dimensions: ${p.dimensions}
-  Grain: ${p.grain_direction}
-  Notches: ${p.notches?.join(', ') || 'None'}
-`).join('\n') || 'See pattern layout'}
+┌─ ${p.name.toUpperCase()} ─────────────────────
+│ Quantity: Cut ${p.quantity}
+│ Dimensions: ${p.dimensions}
+│ Grain Line: ${p.grain_direction}
+│ Seam Allowance: ${p.seam_allowance || patternData.seam_allowance || '5/8"'}
+│ Notches: ${p.notches?.join(', ') || 'As marked'}
+└───────────────────────────────────────────`).join('\n') || 'See pattern layout'}
 
-SEAM ALLOWANCE: ${patternData?.seam_allowance || '5/8" (1.5cm)'}
+═══════════════════════════════════════════════════════════════
 
-FABRIC RECOMMENDATIONS:
-${patternData?.fabric_recommendations?.map(f => `• ${f}`).join('\n') || 'Medium weight woven fabric'}
+MATERIALS NEEDED
+────────────────
+FABRIC: ${patternData?.fabric_yardage || '2-3 yards'}
 
-ESTIMATED FABRIC NEEDED: ${patternData?.fabric_yardage || 'See instructions'}
+RECOMMENDED FABRICS:
+${patternData?.fabric_recommendations?.map(f => `• ${f}`).join('\n') || '• Medium weight fabric'}
+
+NOTIONS:
+• Matching thread
+• Pins or clips
+• ${seamInfo?.value === 'bias' ? 'Bias tape/binding' : ''}
+• ${seamInfo?.value === 'serged' ? 'Serger/overlocker thread' : ''}
+
+═══════════════════════════════════════════════════════════════
+
+SEWING INSTRUCTIONS
+───────────────────
+${patternData?.sewing_instructions?.map(s => `
+STEP ${s.step}: ${s.title.toUpperCase()}
+${s.description}
+${s.seam_finish_tip ? `\n💡 Seam Finishing: ${s.seam_finish_tip}` : ''}
+`).join('\n────────────────────────────────────────\n') || 'Follow standard construction methods'}
+
+═══════════════════════════════════════════════════════════════
+
+STYLE-SPECIFIC DETAILS (${styleInfo?.label || 'Classic'})
+─────────────────────────────────────────
+${patternData?.style_specific_details?.map(d => `• ${d}`).join('\n') || '• Follow pattern as drafted'}
+
+═══════════════════════════════════════════════════════════════
+
+PRO TIPS ✨
+──────────
+${patternData?.tips?.map(t => `• ${t}`).join('\n') || '• Press seams as you go\n• Test fit before finishing'}
+
+═══════════════════════════════════════════════════════════════
 
 DIFFICULTY: ${patternData?.difficulty_level || 'Intermediate'}
 ESTIMATED TIME: ${patternData?.estimated_time || '2-4 hours'}
 
-SEWING INSTRUCTIONS:
-${patternData?.sewing_instructions?.map(s => `
-Step ${s.step}: ${s.title}
-${s.description}
-`).join('\n') || 'Follow standard construction methods'}
-
-TIPS:
-${patternData?.tips?.map(t => `• ${t}`).join('\n') || '• Press seams as you go\n• Test fit before finishing'}
-
----
+───────────────────────────────────────────────────────────────
 Generated by Print Your Fit ✨
+Your AI-Powered Pattern Making Assistant
+───────────────────────────────────────────────────────────────
     `;
 
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `pattern-${clothingType}-${Date.now()}.txt`;
+    a.download = `PrintYourFit_${clothingType}_${customOptions.styleModifier}_pattern.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Handle 3D model adjustments
+  const handleModelAdjustments = (adjustments) => {
+    setModelAdjustments(adjustments);
   };
 
   if (isGenerating) {
@@ -274,9 +290,11 @@ Generated by Print Your Fit ✨
             </motion.div>
             <div className="text-center">
               <h3 className="text-3xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                ✨ Creating Your Pattern ✨
+                ✨ Creating Your Custom Pattern ✨
               </h3>
-              <p className="text-gray-600 mt-2 text-lg">AI is drafting your custom sewing pattern...</p>
+              <p className="text-gray-600 mt-2 text-lg">
+                Applying {customOptions.styleModifier} style with {customOptions.seamFinish.replace('_', ' ')} seams...
+              </p>
             </div>
             <div className="flex gap-2">
               {[...Array(7)].map((_, i) => (
@@ -310,170 +328,230 @@ Generated by Print Your Fit ✨
         className="text-center"
       >
         <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-          🎉 Your Pattern is Ready!
+          {patternData ? '🎉 Your Pattern is Ready!' : '✨ Customize Your Pattern'}
         </h2>
-        <p className="text-gray-600 mt-2">{patternData?.garment_name || `Custom ${clothingType}`}</p>
+        <p className="text-gray-600 mt-2">
+          {patternData 
+            ? `${patternData?.garment_name || `Custom ${clothingType}`} - ${patternData.customOptions?.styleModifier} style`
+            : 'Choose your fabric, style, and finishing options'
+          }
+        </p>
       </motion.div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left: 3D Preview */}
-        <div className="lg:col-span-1">
-          <GlowCard glowColor="pink" className="p-4">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <span className="text-2xl">🎨</span> 3D Preview
-            </h3>
-            <div 
-              ref={threeContainerRef}
-              className="rounded-xl overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-gradient-to-br from-pink-100 via-purple-100 to-cyan-100"
-              style={{ minHeight: '400px' }}
+      <AnimatePresence mode="wait">
+        {showCustomizer && !patternData ? (
+          <motion.div
+            key="customizer"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="grid lg:grid-cols-2 gap-6"
+          >
+            {/* Left: 3D Preview */}
+            <Interactive3DViewer 
+              clothingType={clothingType}
+              measurements={measurements}
+              onMeasurementsChange={handleModelAdjustments}
             />
-            <div className="flex justify-center gap-2 mt-4">
-              <button className="p-2 bg-white rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:scale-105 transition-transform">
-                <RotateCcw className="w-5 h-5" />
-              </button>
-              <button className="p-2 bg-white rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:scale-105 transition-transform">
-                <ZoomIn className="w-5 h-5" />
-              </button>
-              <button className="p-2 bg-white rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:scale-105 transition-transform">
-                <ZoomOut className="w-5 h-5" />
-              </button>
+
+            {/* Right: Customization Options */}
+            <div className="space-y-4">
+              <PatternCustomizer 
+                options={customOptions}
+                onOptionsChange={setCustomOptions}
+              />
+              
+              {/* Generate Button */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex justify-center"
+              >
+                <GlowButton onClick={generatePattern} variant="primary" className="text-xl px-10 py-5">
+                  <Sparkles className="w-6 h-6 mr-2 inline" />
+                  Generate Custom Pattern
+                </GlowButton>
+              </motion.div>
             </div>
-          </GlowCard>
-        </div>
+          </motion.div>
+        ) : patternData ? (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Left: 3D Preview */}
+              <div className="lg:col-span-1">
+                <Interactive3DViewer 
+                  clothingType={clothingType}
+                  measurements={measurements}
+                  onMeasurementsChange={handleModelAdjustments}
+                />
+              </div>
 
-        {/* Right: Pattern Details */}
-        <div className="lg:col-span-2">
-          <GlowCard glowColor="cyan" className="p-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-4 gap-2 bg-gradient-to-r from-pink-100 via-purple-100 to-cyan-100 p-2 rounded-xl border-3 border-black">
-                <TabsTrigger value="sketch" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold">
-                  <FileText className="w-4 h-4 mr-1" /> Sketch
-                </TabsTrigger>
-                <TabsTrigger value="pattern" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold">
-                  <Ruler className="w-4 h-4 mr-1" /> Pattern
-                </TabsTrigger>
-                <TabsTrigger value="instructions" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold">
-                  <BookOpen className="w-4 h-4 mr-1" /> Steps
-                </TabsTrigger>
-                <TabsTrigger value="info" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold">
-                  <Scissors className="w-4 h-4 mr-1" /> Info
-                </TabsTrigger>
-              </TabsList>
+              {/* Right: Pattern Details */}
+              <div className="lg:col-span-2">
+                <GlowCard glowColor="cyan" className="p-6">
+                  <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="grid grid-cols-4 gap-2 bg-gradient-to-r from-pink-100 via-purple-100 to-cyan-100 p-2 rounded-xl border-3 border-black">
+                      <TabsTrigger value="sketch" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
+                        <FileText className="w-4 h-4 mr-1" /> Sketch
+                      </TabsTrigger>
+                      <TabsTrigger value="pattern" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
+                        <Ruler className="w-4 h-4 mr-1" /> Pattern
+                      </TabsTrigger>
+                      <TabsTrigger value="instructions" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
+                        <BookOpen className="w-4 h-4 mr-1" /> Steps
+                      </TabsTrigger>
+                      <TabsTrigger value="info" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
+                        <Settings className="w-4 h-4 mr-1" /> Info
+                      </TabsTrigger>
+                    </TabsList>
 
-              <TabsContent value="sketch" className="mt-6">
-                <div className="rounded-xl overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <img 
-                    src={patternData?.flat_sketch_url} 
-                    alt="Flat Sketch"
-                    className="w-full h-auto bg-white"
-                  />
-                </div>
-                <p className="mt-4 text-gray-600 text-sm">{patternData?.flat_sketch_description}</p>
-              </TabsContent>
-
-              <TabsContent value="pattern" className="mt-6">
-                <div className="rounded-xl overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <img 
-                    src={patternData?.pattern_layout_url}
-                    alt="Pattern Layout"
-                    className="w-full h-auto bg-white"
-                  />
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  {patternData?.pattern_pieces?.map((piece, i) => (
-                    <div 
-                      key={i}
-                      className="p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border-2 border-black"
-                    >
-                      <p className="font-bold text-purple-700">{piece.name}</p>
-                      <p className="text-xs text-gray-500">Cut {piece.quantity} • {piece.grain_direction}</p>
-                      <p className="text-xs text-gray-600 mt-1">{piece.dimensions}</p>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="instructions" className="mt-6">
-                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                  {patternData?.sewing_instructions?.map((step, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="flex gap-4 p-4 bg-gradient-to-r from-pink-50 via-purple-50 to-cyan-50 rounded-xl border-3 border-black"
-                    >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 border-3 border-black flex items-center justify-center text-white font-bold">
-                        {step.step}
+                    <TabsContent value="sketch" className="mt-6">
+                      <div className="rounded-xl overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <img 
+                          src={patternData?.flat_sketch_url} 
+                          alt="Flat Sketch"
+                          className="w-full h-auto bg-white"
+                        />
                       </div>
-                      <div>
-                        <h4 className="font-bold text-purple-700">{step.title}</h4>
-                        <p className="text-gray-600 text-sm mt-1">{step.description}</p>
+                      <div className="mt-4 p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border-2 border-black">
+                        <p className="text-sm font-bold text-purple-600 mb-1">Style: {patternData.customOptions?.styleModifier}</p>
+                        <p className="text-gray-600 text-sm">{patternData?.style_notes || patternData?.flat_sketch_description}</p>
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </TabsContent>
+                    </TabsContent>
 
-              <TabsContent value="info" className="mt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-pink-50 rounded-xl border-3 border-black">
-                    <p className="text-xs font-bold text-pink-600 uppercase">Difficulty</p>
-                    <p className="text-lg font-bold">{patternData?.difficulty_level || 'Intermediate'}</p>
-                  </div>
-                  <div className="p-4 bg-purple-50 rounded-xl border-3 border-black">
-                    <p className="text-xs font-bold text-purple-600 uppercase">Time</p>
-                    <p className="text-lg font-bold">{patternData?.estimated_time || '2-4 hours'}</p>
-                  </div>
-                  <div className="p-4 bg-cyan-50 rounded-xl border-3 border-black">
-                    <p className="text-xs font-bold text-cyan-600 uppercase">Seam Allowance</p>
-                    <p className="text-lg font-bold">{patternData?.seam_allowance || '5/8"'}</p>
-                  </div>
-                  <div className="p-4 bg-lime-50 rounded-xl border-3 border-black">
-                    <p className="text-xs font-bold text-lime-600 uppercase">Fabric Needed</p>
-                    <p className="text-lg font-bold">{patternData?.fabric_yardage || '2-3 yards'}</p>
-                  </div>
-                </div>
-                <div className="mt-4 p-4 bg-gradient-to-r from-orange-50 to-pink-50 rounded-xl border-3 border-black">
-                  <p className="text-xs font-bold text-orange-600 uppercase mb-2">Recommended Fabrics</p>
-                  <div className="flex flex-wrap gap-2">
-                    {patternData?.fabric_recommendations?.map((fabric, i) => (
-                      <span key={i} className="px-3 py-1 bg-white rounded-full border-2 border-black text-sm font-medium">
-                        {fabric}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                {patternData?.tips && (
-                  <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-cyan-50 rounded-xl border-3 border-black">
-                    <p className="text-xs font-bold text-purple-600 uppercase mb-2">Pro Tips ✨</p>
-                    <ul className="space-y-1">
-                      {patternData.tips.map((tip, i) => (
-                        <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
-                          <span className="text-pink-500">•</span>
-                          {tip}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </GlowCard>
-        </div>
-      </div>
+                    <TabsContent value="pattern" className="mt-6">
+                      <div className="rounded-xl overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <img 
+                          src={patternData?.pattern_layout_url}
+                          alt="Pattern Layout"
+                          className="w-full h-auto bg-white"
+                        />
+                      </div>
+                      <div className="mt-4 grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
+                        {patternData?.pattern_pieces?.map((piece, i) => (
+                          <div 
+                            key={i}
+                            className="p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border-2 border-black"
+                          >
+                            <p className="font-bold text-purple-700">{piece.name}</p>
+                            <p className="text-xs text-gray-500">Cut {piece.quantity} • {piece.grain_direction}</p>
+                            <p className="text-xs text-gray-600 mt-1">{piece.dimensions}</p>
+                            <p className="text-xs text-pink-500 mt-1">SA: {piece.seam_allowance || patternData.seam_allowance}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </TabsContent>
 
-      {/* Download Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex justify-center"
-      >
-        <GlowButton onClick={handleDownload} variant="primary" className="text-xl px-12 py-5">
-          <Download className="w-6 h-6 mr-3 inline" />
-          Download Pattern Packet
-        </GlowButton>
-      </motion.div>
+                    <TabsContent value="instructions" className="mt-6">
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                        {patternData?.sewing_instructions?.map((step, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="flex gap-4 p-4 bg-gradient-to-r from-pink-50 via-purple-50 to-cyan-50 rounded-xl border-3 border-black"
+                          >
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 border-3 border-black flex items-center justify-center text-white font-bold">
+                              {step.step}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-purple-700">{step.title}</h4>
+                              <p className="text-gray-600 text-sm mt-1">{step.description}</p>
+                              {step.seam_finish_tip && (
+                                <p className="text-xs text-pink-600 mt-2 bg-pink-50 p-2 rounded-lg">
+                                  ✂️ {step.seam_finish_tip}
+                                </p>
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="info" className="mt-6">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-3 bg-pink-50 rounded-xl border-3 border-black">
+                          <p className="text-xs font-bold text-pink-600 uppercase">Difficulty</p>
+                          <p className="text-lg font-bold">{patternData?.difficulty_level || 'Intermediate'}</p>
+                        </div>
+                        <div className="p-3 bg-purple-50 rounded-xl border-3 border-black">
+                          <p className="text-xs font-bold text-purple-600 uppercase">Time</p>
+                          <p className="text-lg font-bold">{patternData?.estimated_time || '2-4 hours'}</p>
+                        </div>
+                        <div className="p-3 bg-cyan-50 rounded-xl border-3 border-black">
+                          <p className="text-xs font-bold text-cyan-600 uppercase">Seam Allowance</p>
+                          <p className="text-lg font-bold">{patternData?.seam_allowance || '5/8"'}</p>
+                        </div>
+                        <div className="p-3 bg-lime-50 rounded-xl border-3 border-black">
+                          <p className="text-xs font-bold text-lime-600 uppercase">Fabric</p>
+                          <p className="text-lg font-bold">{patternData?.fabric_yardage || '2-3 yards'}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 p-3 bg-gradient-to-r from-orange-50 to-pink-50 rounded-xl border-3 border-black">
+                        <p className="text-xs font-bold text-orange-600 uppercase mb-2">Your Customizations</p>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="px-3 py-1 bg-white rounded-full border-2 border-black text-xs font-bold">
+                            {fabricTypes.find(f => f.value === patternData.customOptions?.fabricType)?.label || 'Woven'}
+                          </span>
+                          <span className="px-3 py-1 bg-white rounded-full border-2 border-black text-xs font-bold">
+                            {styleModifiers.find(s => s.value === patternData.customOptions?.styleModifier)?.emoji} {patternData.customOptions?.styleModifier}
+                          </span>
+                          <span className="px-3 py-1 bg-white rounded-full border-2 border-black text-xs font-bold">
+                            {seamFinishes.find(s => s.value === patternData.customOptions?.seamFinish)?.label || 'Serged'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {patternData?.seam_finishing_notes && (
+                        <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-3 border-black">
+                          <p className="text-xs font-bold text-purple-600 uppercase mb-1">Seam Finishing Notes</p>
+                          <p className="text-sm text-gray-600">{patternData.seam_finishing_notes}</p>
+                        </div>
+                      )}
+
+                      {patternData?.style_specific_details && (
+                        <div className="mt-3 p-3 bg-gradient-to-r from-cyan-50 to-purple-50 rounded-xl border-3 border-black">
+                          <p className="text-xs font-bold text-cyan-600 uppercase mb-2">Style Details ✨</p>
+                          <ul className="space-y-1">
+                            {patternData.style_specific_details.map((d, i) => (
+                              <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-pink-500">•</span>
+                                {d}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </GlowCard>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap justify-center gap-4 mt-6"
+            >
+              <GlowButton onClick={() => { setPatternData(null); setShowCustomizer(true); }} variant="secondary">
+                <Settings className="w-5 h-5 mr-2 inline" />
+                Customize Again
+              </GlowButton>
+              <GlowButton onClick={handleDownload} variant="primary" className="text-xl px-10">
+                <Download className="w-6 h-6 mr-2 inline" />
+                Download Pattern Packet
+              </GlowButton>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
