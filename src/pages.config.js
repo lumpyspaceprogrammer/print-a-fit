@@ -47,20 +47,20 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Upload from './pages/Upload';
-import Refine from './pages/Refine';
+import Home from './pages/Home';
 import Measurements from './pages/Measurements';
 import Pattern from './pages/Pattern';
-import Home from './pages/Home';
+import Refine from './pages/Refine';
+import Upload from './pages/Upload';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Upload": Upload,
-    "Refine": Refine,
+    "Home": Home,
     "Measurements": Measurements,
     "Pattern": Pattern,
-    "Home": Home,
+    "Refine": Refine,
+    "Upload": Upload,
 }
 
 export const pagesConfig = {

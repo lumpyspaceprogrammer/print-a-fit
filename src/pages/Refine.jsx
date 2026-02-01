@@ -28,16 +28,20 @@ export default function Refine() {
     }
 
     try {
-      const projects = await base44.entities.Project.filter({ id: projectId });
-      if (projects && projects.length > 0) {
-        setProject(projects[0]);
+      // List all projects and find the one with matching ID
+      const projects = await base44.entities.Project.list();
+      const foundProject = projects.find(p => p.id === projectId);
+      
+      if (foundProject && foundProject.original_image_url) {
+        setProject(foundProject);
         
         // Fetch the original image as a file
-        const response = await fetch(projects[0].original_image_url);
+        const response = await fetch(foundProject.original_image_url);
         const blob = await response.blob();
         const file = new File([blob], 'original.jpg', { type: blob.type });
         setOriginalFile(file);
       } else {
+        console.error('Project not found or missing image');
         navigate(createPageUrl('Upload'));
       }
     } catch (error) {
