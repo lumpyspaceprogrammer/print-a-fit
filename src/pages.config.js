@@ -52,6 +52,7 @@ import Measurements from './pages/Measurements';
 import Pattern from './pages/Pattern';
 import Refine from './pages/Refine';
 import Upload from './pages/Upload';
+import Community from './pages/Community';
 import __Layout from './Layout.jsx';
 
 
@@ -61,6 +62,7 @@ export const PAGES = {
     "Pattern": Pattern,
     "Refine": Refine,
     "Upload": Upload,
+    "Community": Community,
 }
 
 export const pagesConfig = {
