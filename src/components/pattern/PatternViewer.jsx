@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, FileText, Ruler, Scissors, BookOpen, Loader2, Settings, Sparkles } from 'lucide-react';
+import { Download, FileText, Ruler, Scissors, BookOpen, Loader2, Settings, Sparkles, Share2, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import GlowCard from '../ui/GlowCard';
 import GlowButton from '../ui/GlowButton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { base44 } from '@/api/base44Client';
 import PatternCustomizer, { fabricTypes, styleModifiers, seamFinishes } from './PatternCustomizer';
 import Interactive3DViewer from './Interactive3DViewer';
+import ShareProjectModal from '../showcase/ShareProjectModal';
+import { createPageUrl } from '@/utils';
 
-export default function PatternViewer({ refinedImage, measurements, clothingType }) {
+export default function PatternViewer({ refinedImage, measurements, clothingType, project }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [patternData, setPatternData] = useState(null);
   const [activeTab, setActiveTab] = useState('customize');
   const [showCustomizer, setShowCustomizer] = useState(true);
   const [modelAdjustments, setModelAdjustments] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [hasShared, setHasShared] = useState(false);
   
   // Customization options
   const [customOptions, setCustomOptions] = useState({
@@ -548,10 +553,45 @@ Your AI-Powered Pattern Making Assistant
                 <Download className="w-6 h-6 mr-2 inline" />
                 Download Pattern Packet
               </GlowButton>
+              <GlowButton 
+                onClick={() => setShowShareModal(true)} 
+                variant="success"
+                disabled={hasShared}
+              >
+                <Share2 className="w-5 h-5 mr-2 inline" />
+                {hasShared ? 'Shared!' : 'Share to Community'}
+              </GlowButton>
+            </motion.div>
+
+            {/* Community Link */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-4 text-center"
+            >
+              <Link 
+                to={createPageUrl('Community')}
+                className="inline-flex items-center gap-2 text-purple-600 font-bold hover:text-purple-700 hover:underline"
+              >
+                <Users className="w-4 h-4" />
+                Browse Community Showcase →
+              </Link>
             </motion.div>
           </motion.div>
         ) : null}
       </AnimatePresence>
+
+      {/* Share Modal */}
+      <ShareProjectModal
+        isOpen={showShareModal}
+        onClose={(success) => {
+          setShowShareModal(false);
+          if (success) setHasShared(true);
+        }}
+        project={project}
+        patternData={patternData}
+      />
     </div>
   );
 }

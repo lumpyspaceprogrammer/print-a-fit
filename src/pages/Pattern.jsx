@@ -89,6 +89,7 @@ export default function Pattern() {
               refinedImage={project.refined_image_url}
               measurements={project.measurements}
               clothingType={project.clothing_type}
+              project={project}
             />
           )}
         </motion.div>

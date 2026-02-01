@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Sparkles, Upload, Wand2, Ruler, Scissors, Star, Heart, Zap, ArrowRight } from 'lucide-react';
+import { Sparkles, Upload, Wand2, Ruler, Scissors, Star, Heart, Zap, ArrowRight, Users } from 'lucide-react';
 import FloatingShapes from '../components/ui/FloatingShapes';
 import GlowButton from '../components/ui/GlowButton';
 import GlowCard from '../components/ui/GlowCard';
@@ -144,6 +144,50 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+        </section>
+
+        {/* Community Section */}
+        <section className="container mx-auto px-4 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+          >
+            <GlowCard glowColor="cyan" className="p-8">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl font-bold mb-2 flex items-center justify-center md:justify-start gap-2">
+                    <Users className="w-7 h-7 text-purple-500" />
+                    <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
+                      Community Showcase
+                    </span>
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Get inspired by finished garments from makers around the world. 
+                    Share your own creations and discover new styles!
+                  </p>
+                  <Link to={createPageUrl('Community')}>
+                    <GlowButton variant="secondary">
+                      <Heart className="w-5 h-5 mr-2 inline" />
+                      Explore Community
+                    </GlowButton>
+                  </Link>
+                </div>
+                <div className="flex -space-x-4">
+                  {['🧵', '✂️', '🎀', '👗'].map((emoji, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 0 }}
+                      whileInView={{ scale: 1 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-200 to-purple-200 border-4 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center text-2xl"
+                    >
+                      {emoji}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </GlowCard>
+          </motion.div>
         </section>
 
         {/* CTA Section */}
