@@ -28,10 +28,13 @@ export default function Pattern() {
     }
 
     try {
-      const projects = await base44.entities.Project.filter({ id: projectId });
-      if (projects && projects.length > 0 && projects[0].measurements) {
-        setProject(projects[0]);
+      const projects = await base44.entities.Project.list();
+      const foundProject = projects.find(p => p.id === projectId);
+      
+      if (foundProject && foundProject.measurements) {
+        setProject(foundProject);
       } else {
+        console.error('Project not found or missing measurements');
         navigate(createPageUrl('Upload'));
       }
     } catch (error) {
