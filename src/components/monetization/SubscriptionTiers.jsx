@@ -1,10 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles, Star, Crown, Zap } from 'lucide-react';
-import GlowCard from '../ui/GlowCard';
 import GlowButton from '../ui/GlowButton';
 
-export const tiers = [
+// Tier data without React components for importing elsewhere
+export const tierData = {
+  free: { patternsPerDay: 0 },
+  hobbyist: { patternsPerDay: 3 },
+  influencer: { patternsPerDay: 10 },
+  boss: { patternsPerDay: -1 }
+};
+
+const tiers = [
   {
     id: 'free',
     name: 'Free',

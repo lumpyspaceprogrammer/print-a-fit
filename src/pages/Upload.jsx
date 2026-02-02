@@ -9,7 +9,7 @@ import ImageUploader from '../components/upload/ImageUploader';
 import SuperbowlPopup from '../components/superbowl/SuperbowlPopup';
 import UpgradeModal from '../components/monetization/UpgradeModal';
 import { createPageUrl } from '@/utils';
-import { tiers } from '../components/monetization/SubscriptionTiers';
+import { tierData } from '../components/monetization/SubscriptionTiers';
 
 export default function Upload() {
   const [isUploading, setIsUploading] = useState(false);
@@ -81,7 +81,7 @@ export default function Upload() {
     
     if (!subscription) return true; // First time user
     
-    const tier = tiers.find(t => t.id === subscription.tier) || tiers[0];
+    const tier = tierData[subscription.tier] || tierData.free;
     
     // Free tier: only 1 pattern ever
     if (subscription.tier === 'free') {
@@ -148,7 +148,7 @@ export default function Upload() {
     if (!subscription) return 1;
     if (isSuperbowlChallenge && !subscription.superbowl_entry_submitted) return 1;
     
-    const tier = tiers.find(t => t.id === subscription.tier) || tiers[0];
+    const tier = tierData[subscription.tier] || tierData.free;
     
     if (subscription.tier === 'free') {
       return subscription.has_used_free_pattern ? 0 : 1;
