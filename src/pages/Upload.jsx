@@ -1,18 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import FloatingShapes from '../components/ui/FloatingShapes';
 import ProgressSteps from '../components/ui/ProgressSteps';
 import ImageUploader from '../components/upload/ImageUploader';
+import SuperbowlPopup from '../components/superbowl/SuperbowlPopup';
+import UpgradeModal from '../components/monetization/UpgradeModal';
 import { createPageUrl } from '@/utils';
+import { tiers } from '../components/monetization/SubscriptionTiers';
 
 export default function Upload() {
   const [isUploading, setIsUploading] = useState(false);
+  const [showSuperbowlPopup, setShowSuperbowlPopup] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [subscription, setSubscription] = useState(null);
+  const [isSuperbowlChallenge, setIsSuperbowlChallenge] = useState(false);
+  const [superbowlTeam, setSuperbowlTeam] = useState(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    checkSubscriptionAndPopups();
+  }, []);
+
+  const checkSubscriptionAndPopups = async () => {
+    try {
+      const user = await base44.auth.me();
+      if (user) {
+        // Get or create subscription
+        const subs = await base44.entities.UserSubscription.list();
+        const userSub = subs.find(s => s.created_by === user.email);
+        
+        if (userSub) {
+          // Reset daily count if new day
+          const today = new Date().toISOString().split('T')[0];
+          if (userSub.last_pattern_date !== today) {
+            await base44.entities.UserSubscription.update(userSub.id, {
+              patterns_used_today: 0,
+              last_pattern_date: today
+            });
+            userSub.patterns_used_today = 0;
+          }
+          setSubscription(userSub);
+          
+          // Show Superbowl popup if not entered
+          if (!userSub.superbowl_entry_submitted) {
+            setTimeout(() => setShowSuperbowlPopup(true), 1000);
+          }
+        } else {
+          // Create new subscription record
+          const newSub = await base44.entities.UserSubscription.create({
+            tier: 'free',
+            patterns_used_today: 0,
+            total_patterns_created: 0,
+            has_used_free_pattern: false,
+            superbowl_entry_submitted: false
+          });
+          setSubscription(newSub);
+          setTimeout(() => setShowSuperbowlPopup(true), 1000);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      setTimeout(() => setShowSuperbowlPopup(true), 1000);
+    }
+
+    // Check URL params for challenge mode
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('challenge') === 'superbowl') {
+      setIsSuperbowlChallenge(true);
+      setSuperbowlTeam(urlParams.get('team'));
+    }
+  };
+
+  const canCreatePattern = () => {
+    if (isSuperbowlChallenge && !subscription?.superbowl_entry_submitted) {
+      return true; // Superbowl challenge is free
+    }
+    
+    if (!subscription) return true; // First time user
+    
+    const tier = tiers.find(t => t.id === subscription.tier) || tiers[0];
+    
+    // Free tier: only 1 pattern ever
+    if (subscription.tier === 'free') {
+      return !subscription.has_used_free_pattern;
+    }
+    
+    // Paid tiers: check daily limit
+    if (tier.patternsPerDay === -1) return true; // Unlimited
+    return subscription.patterns_used_today < tier.patternsPerDay;
+  };
+
   const handleImageSelect = async (file) => {
+    // Check if user can create pattern
+    if (!canCreatePattern()) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setIsUploading(true);
     try {
       // Upload the image
@@ -23,6 +109,32 @@ export default function Upload() {
         original_image_url: file_url,
         status: 'uploaded'
       });
+
+      // Update subscription usage
+      if (subscription) {
+        const updates = {
+          patterns_used_today: (subscription.patterns_used_today || 0) + 1,
+          total_patterns_created: (subscription.total_patterns_created || 0) + 1,
+          last_pattern_date: new Date().toISOString().split('T')[0]
+        };
+        
+        if (subscription.tier === 'free') {
+          updates.has_used_free_pattern = true;
+        }
+        
+        if (isSuperbowlChallenge && superbowlTeam) {
+          updates.superbowl_team_pick = superbowlTeam;
+          updates.superbowl_entry_submitted = true;
+          
+          // Create superbowl entry
+          await base44.entities.SuperbowlEntry.create({
+            team_pick: superbowlTeam,
+            project_id: project.id
+          });
+        }
+        
+        await base44.entities.UserSubscription.update(subscription.id, updates);
+      }
       
       // Navigate to refine page with project ID
       navigate(createPageUrl('Refine') + `?projectId=${project.id}`);
@@ -32,9 +144,42 @@ export default function Upload() {
     }
   };
 
+  const getRemainingPatterns = () => {
+    if (!subscription) return 1;
+    if (isSuperbowlChallenge && !subscription.superbowl_entry_submitted) return 1;
+    
+    const tier = tiers.find(t => t.id === subscription.tier) || tiers[0];
+    
+    if (subscription.tier === 'free') {
+      return subscription.has_used_free_pattern ? 0 : 1;
+    }
+    if (tier.patternsPerDay === -1) return '∞';
+    return Math.max(0, tier.patternsPerDay - (subscription.patterns_used_today || 0));
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
       <FloatingShapes />
+      
+      {/* Superbowl Popup */}
+      <SuperbowlPopup
+        isOpen={showSuperbowlPopup}
+        onClose={() => setShowSuperbowlPopup(false)}
+        onJoin={(team) => {
+          setShowSuperbowlPopup(false);
+        }}
+      />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTier={subscription?.tier || 'free'}
+        reason={subscription?.tier === 'free' 
+          ? "You've used your free pattern! Upgrade to create more."
+          : "You've reached your daily limit. Upgrade for more patterns."
+        }
+      />
       
       <div className="relative z-10 container mx-auto px-4 py-8">
         <motion.div
@@ -42,12 +187,51 @@ export default function Upload() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
+          {isSuperbowlChallenge && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="inline-block mb-4 px-6 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-full border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+            >
+              🏈 SUPERBOWL CHALLENGE - FREE PATTERN! {superbowlTeam && `(Team ${superbowlTeam.toUpperCase()})`}
+            </motion.div>
+          )}
           <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent drop-shadow-lg">
             ✨ Print Your Fit ✨
           </h1>
           <p className="text-lg text-gray-700 mt-2 font-medium">
             Transform any clothing photo into a custom sewing pattern
           </p>
+          
+          {/* Patterns remaining indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/80 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+          >
+            {canCreatePattern() ? (
+              <>
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                <span className="font-bold text-sm">
+                  {isSuperbowlChallenge ? '🏈 FREE Challenge Pattern' : `${getRemainingPatterns()} pattern${getRemainingPatterns() === 1 ? '' : 's'} remaining today`}
+                </span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4 text-gray-500" />
+                <span className="font-bold text-sm text-gray-600">
+                  Upgrade for more patterns
+                </span>
+                <button 
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="text-purple-600 underline font-bold text-sm"
+                >
+                  View Plans
+                </button>
+              </>
+            )}
+          </motion.div>
         </motion.div>
 
         <ProgressSteps currentStep={1} />
