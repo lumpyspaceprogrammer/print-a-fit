@@ -1,22 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import FloatingShapes from '../components/ui/FloatingShapes';
 import ProgressSteps from '../components/ui/ProgressSteps';
 import PatternViewer from '../components/pattern/PatternViewer';
 import GlowButton from '../components/ui/GlowButton';
+import UpgradeModal from '../components/monetization/UpgradeModal';
 import { createPageUrl } from '@/utils';
 import { Loader2, Plus } from 'lucide-react';
 
 export default function Pattern() {
   const [project, setProject] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [subscription, setSubscription] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadProject();
+    checkSubscription();
   }, []);
+
+  const checkSubscription = async () => {
+    try {
+      const user = await base44.auth.me();
+      if (user) {
+        const subs = await base44.entities.UserSubscription.list();
+        const userSub = subs.find(s => s.created_by === user.email);
+        if (userSub) {
+          setSubscription(userSub);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
 
   const loadProject = async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -101,13 +120,29 @@ export default function Pattern() {
           transition={{ delay: 1 }}
           className="mt-8 flex justify-center"
         >
-          <Link to={createPageUrl('Upload')}>
-            <GlowButton variant="secondary">
-              <Plus className="w-5 h-5 mr-2 inline" />
-              Create Another Pattern
-            </GlowButton>
-          </Link>
+          <GlowButton 
+            variant="secondary"
+            onClick={() => {
+              // Check if user has reached their limit
+              if (subscription?.tier === 'free' && subscription?.has_used_free_pattern) {
+                setShowUpgradeModal(true);
+              } else {
+                navigate(createPageUrl('Upload'));
+              }
+            }}
+          >
+            <Plus className="w-5 h-5 mr-2 inline" />
+            Create Another Pattern
+          </GlowButton>
         </motion.div>
+
+        {/* Upgrade Modal */}
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          currentTier={subscription?.tier || 'free'}
+          reason="You've used your free pattern! Upgrade to create more amazing outfits."
+        />
 
         {/* Decorative elements */}
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-lime-400/30 to-transparent rounded-full blur-3xl" />
