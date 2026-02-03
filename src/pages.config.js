@@ -54,6 +54,7 @@ import Pattern from './pages/Pattern';
 import Refine from './pages/Refine';
 import SuperbowlChallenge from './pages/SuperbowlChallenge';
 import Upload from './pages/Upload';
+import Contact from './pages/Contact';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "Refine": Refine,
     "SuperbowlChallenge": SuperbowlChallenge,
     "Upload": Upload,
+    "Contact": Contact,
 }
 
 export const pagesConfig = {
