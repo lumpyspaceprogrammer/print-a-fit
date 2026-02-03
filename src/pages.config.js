@@ -70,7 +70,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Upload",
+    mainPage: "Home",
     Pages: PAGES,
     Layout: __Layout,
 };
