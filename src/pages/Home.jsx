@@ -6,6 +6,7 @@ import FloatingShapes from '../components/ui/FloatingShapes';
 import GlowButton from '../components/ui/GlowButton';
 import GlowCard from '../components/ui/GlowCard';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
 
 export default function Home() {
   const features = [
@@ -87,13 +88,22 @@ export default function Home() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <Link to={createPageUrl('Upload')}>
-                <GlowButton variant="primary" className="text-xl md:text-2xl px-10 py-5">
-                  <Star className="w-6 h-6 mr-2 inline animate-spin" style={{ animationDuration: '3s' }} />
-                  Start Creating
-                  <ArrowRight className="w-6 h-6 ml-2 inline" />
-                </GlowButton>
-              </Link>
+              <GlowButton 
+                variant="primary" 
+                className="text-xl md:text-2xl px-10 py-5"
+                onClick={async () => {
+                  const isAuth = await base44.auth.isAuthenticated();
+                  if (isAuth) {
+                    window.location.href = createPageUrl('Upload');
+                  } else {
+                    base44.auth.redirectToLogin(createPageUrl('Upload'));
+                  }
+                }}
+              >
+                <Star className="w-6 h-6 mr-2 inline animate-spin" style={{ animationDuration: '3s' }} />
+                🎉 Make Your First Outfit For FREE! 🎉
+                <ArrowRight className="w-6 h-6 ml-2 inline" />
+              </GlowButton>
             </motion.div>
           </motion.div>
 
@@ -203,12 +213,20 @@ export default function Home() {
               <p className="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
                 Join thousands of creators making custom patterns from their favorite clothes
               </p>
-              <Link to={createPageUrl('Upload')}>
-                <GlowButton variant="success">
-                  <Sparkles className="w-5 h-5 mr-2 inline" />
-                  Get Started Free
-                </GlowButton>
-              </Link>
+              <GlowButton 
+                variant="success"
+                onClick={async () => {
+                  const isAuth = await base44.auth.isAuthenticated();
+                  if (isAuth) {
+                    window.location.href = createPageUrl('Upload');
+                  } else {
+                    base44.auth.redirectToLogin(createPageUrl('Upload'));
+                  }
+                }}
+              >
+                <Sparkles className="w-5 h-5 mr-2 inline" />
+                Make Your First Outfit For FREE!
+              </GlowButton>
             </GlowCard>
           </motion.div>
         </section>

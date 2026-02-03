@@ -48,25 +48,25 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Community from './pages/Community';
+import Contact from './pages/Contact';
 import Home from './pages/Home';
 import Measurements from './pages/Measurements';
 import Pattern from './pages/Pattern';
 import Refine from './pages/Refine';
 import SuperbowlChallenge from './pages/SuperbowlChallenge';
 import Upload from './pages/Upload';
-import Contact from './pages/Contact';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Community": Community,
+    "Contact": Contact,
     "Home": Home,
     "Measurements": Measurements,
     "Pattern": Pattern,
     "Refine": Refine,
     "SuperbowlChallenge": SuperbowlChallenge,
     "Upload": Upload,
-    "Contact": Contact,
 }
 
 export const pagesConfig = {
