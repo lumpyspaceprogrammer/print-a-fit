@@ -79,9 +79,21 @@ export default function Home() {
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-700 max-w-2xl mx-auto mb-8 font-medium">
+            <p className="text-xl md:text-2xl text-gray-700 max-w-2xl mx-auto mb-4 font-medium">
               Transform any clothing photo into a custom sewing pattern with AI-powered magic
             </p>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="inline-flex items-center gap-2 px-5 py-2 mb-6 bg-gradient-to-r from-lime-400 to-cyan-400 rounded-full border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+            >
+              <Sparkles className="w-5 h-5 text-white" />
+              <span className="font-bold text-white text-sm md:text-base">
+                Sign up FREE • Get 1 pattern instantly • No credit card needed
+              </span>
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -210,9 +222,14 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-black mb-4 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
                 Ready to Print Your Fit?
               </h2>
-              <p className="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
+              <p className="text-lg text-gray-600 mb-2 max-w-xl mx-auto">
                 Join thousands of creators making custom patterns from their favorite clothes
               </p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 bg-white/80 rounded-full border-2 border-black">
+                <span className="font-bold text-sm text-gray-700">
+                  ✨ Create free account → Upload photo → Get instant pattern
+                </span>
+              </div>
               <GlowButton 
                 variant="success"
                 onClick={async () => {
