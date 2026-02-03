@@ -1,15 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lock } from 'lucide-react';
+import { X, Lock, Loader2 } from 'lucide-react';
 import GlowCard from '../ui/GlowCard';
 import SubscriptionTiers from './SubscriptionTiers';
+import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 export default function UpgradeModal({ isOpen, onClose, currentTier, reason }) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   if (!isOpen) return null;
 
-  const handleSelectTier = (tier) => {
-    // In production, this would open Stripe checkout
-    alert(`Upgrade to ${tier.name} would open payment flow. This is a demo.`);
+  const handleSelectTier = async (tier) => {
+    // Check if running in iframe (preview mode)
+    if (window.self !== window.top) {
+      toast.error('Checkout only works in your published app. Please publish and open in a new tab.');
+      return;
+    }
+
+    const tierKey = tier.name.toLowerCase();
+    setIsProcessing(true);
+    
+    try {
+      const { data } = await base44.functions.invoke('createCheckout', { tier: tierKey });
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Failed to start checkout. Please try again.');
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -51,10 +70,17 @@ export default function UpgradeModal({ isOpen, onClose, currentTier, reason }) {
               </button>
             </div>
 
-            <SubscriptionTiers 
-              currentTier={currentTier} 
-              onSelectTier={handleSelectTier}
-            />
+            {isProcessing ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+                <p className="mt-4 text-lg font-bold text-purple-600">Redirecting to checkout...</p>
+              </div>
+            ) : (
+              <SubscriptionTiers 
+                currentTier={currentTier} 
+                onSelectTier={handleSelectTier}
+              />
+            )}
           </GlowCard>
         </motion.div>
       </motion.div>
