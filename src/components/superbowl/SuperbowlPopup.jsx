@@ -74,31 +74,31 @@ export default function SuperbowlPopup({ isOpen, onClose, onJoin }) {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedTeam('chiefs')}
+                  onClick={() => setSelectedTeam('patriots')}
                   className={`p-4 rounded-xl border-4 transition-all ${
-                    selectedTeam === 'chiefs'
-                      ? 'bg-red-600 border-yellow-400 shadow-[4px_4px_0px_0px_rgba(234,179,8,1)]'
-                      : 'bg-red-700/50 border-black hover:bg-red-600/70'
+                    selectedTeam === 'patriots'
+                      ? 'bg-blue-600 border-red-400 shadow-[4px_4px_0px_0px_rgba(248,113,113,1)]'
+                      : 'bg-blue-700/50 border-black hover:bg-blue-600/70'
                   }`}
                 >
-                  <div className="text-4xl mb-2">🔴</div>
-                  <p className="text-white font-black text-lg">CHIEFS</p>
-                  <p className="text-white/70 text-sm">Kansas City</p>
+                  <div className="text-4xl mb-2">🔵</div>
+                  <p className="text-white font-black text-lg">PATRIOTS</p>
+                  <p className="text-white/70 text-sm">New England</p>
                 </motion.button>
 
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedTeam('eagles')}
+                  onClick={() => setSelectedTeam('seahawks')}
                   className={`p-4 rounded-xl border-4 transition-all ${
-                    selectedTeam === 'eagles'
-                      ? 'bg-green-700 border-gray-300 shadow-[4px_4px_0px_0px_rgba(209,213,219,1)]'
-                      : 'bg-green-800/50 border-black hover:bg-green-700/70'
+                    selectedTeam === 'seahawks'
+                      ? 'bg-blue-800 border-green-400 shadow-[4px_4px_0px_0px_rgba(74,222,128,1)]'
+                      : 'bg-blue-900/50 border-black hover:bg-blue-800/70'
                   }`}
                 >
-                  <div className="text-4xl mb-2">🟢</div>
-                  <p className="text-white font-black text-lg">EAGLES</p>
-                  <p className="text-white/70 text-sm">Philadelphia</p>
+                  <div className="text-4xl mb-2">🦅</div>
+                  <p className="text-white font-black text-lg">SEAHAWKS</p>
+                  <p className="text-white/70 text-sm">Seattle</p>
                 </motion.button>
               </div>
 
