@@ -197,7 +197,7 @@ export default function Upload() {
             </motion.div>
           )}
           <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent drop-shadow-lg">
-            ✨ Print Your Fit ✨
+            ✨ Print A Fit ✨
           </h1>
           <p className="text-lg text-gray-700 mt-2 font-medium">
             Transform any clothing photo into a custom sewing pattern
