@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Image, Camera, X, Sparkles } from 'lucide-react';
+import { Upload, Image, X, Sparkles } from 'lucide-react';
 import GlowCard from '../ui/GlowCard';
 import GlowButton from '../ui/GlowButton';
 import { cn } from "@/lib/utils";
@@ -121,10 +121,6 @@ export default function ImageUploader({ onImageSelect }) {
                   <div className="flex items-center gap-2 px-4 py-2 bg-pink-100 rounded-full border-2 border-black">
                     <Image className="w-4 h-4 text-pink-500" />
                     <span className="text-sm font-medium">JPG, PNG</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full border-2 border-black">
-                    <Camera className="w-4 h-4 text-purple-500" />
-                    <span className="text-sm font-medium">Take Photo</span>
                   </div>
                 </div>
               </div>
