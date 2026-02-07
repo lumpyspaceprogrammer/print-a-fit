@@ -72,7 +72,7 @@ export default function Home() {
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6">
               <span className="block bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent drop-shadow-lg">
-                Print Your
+                Print A
               </span>
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 animate-pulse">
                 ✨ Fit ✨
@@ -220,7 +220,7 @@ export default function Home() {
           >
             <GlowCard glowColor="rainbow" className="text-center py-12 px-8">
               <h2 className="text-3xl md:text-4xl font-black mb-4 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                Ready to Print Your Fit?
+                Ready to Print A Fit?
               </h2>
               <p className="text-lg text-gray-600 mb-2 max-w-xl mx-auto">
                 Join thousands of creators making custom patterns from their favorite clothes
@@ -251,7 +251,7 @@ export default function Home() {
         {/* Footer */}
         <footer className="py-8 text-center text-gray-600">
           <p className="font-medium">
-            Made with 💜 & ✨ by Print Your Fit
+            Made with 💜 & ✨ by Print A Fit
           </p>
         </footer>
       </div>
