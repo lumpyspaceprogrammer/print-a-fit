@@ -21,8 +21,17 @@ export default function Upload() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkSubscriptionAndPopups();
+    checkAuth();
   }, []);
+
+  const checkAuth = async () => {
+    const isAuth = await base44.auth.isAuthenticated();
+    if (!isAuth) {
+      base44.auth.redirectToLogin(createPageUrl('Upload'));
+      return;
+    }
+    checkSubscriptionAndPopups();
+  };
 
   const checkSubscriptionAndPopups = async () => {
     try {
