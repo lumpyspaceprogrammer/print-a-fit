@@ -3,23 +3,37 @@ import { motion } from 'framer-motion';
 import { Wand2, RotateCcw, Check, Loader2, Sparkles } from 'lucide-react';
 import GlowCard from '../ui/GlowCard';
 import GlowButton from '../ui/GlowButton';
+import CircleSelector from './CircleSelector';
 import { base44 } from '@/api/base44Client';
 
 export default function ImageRefiner({ originalImage, onRefinementComplete }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [refinedImage, setRefinedImage] = useState(null);
   const [showComparison, setShowComparison] = useState(false);
+  const [selectionCircle, setSelectionCircle] = useState(null);
+  const [showCircleSelector, setShowCircleSelector] = useState(true);
 
-  const removeBackground = async () => {
+  const handleCircleSelection = (circle) => {
+    setSelectionCircle(circle);
+    setShowCircleSelector(false);
+    removeBackground(circle);
+  };
+
+  const removeBackground = async (circle) => {
     setIsProcessing(true);
     try {
       // Upload original image first
       const { file_url: originalUrl } = await base44.integrations.Core.UploadFile({ file: originalImage });
       
+      const circleInfo = circle 
+        ? `Focus on the area within a circle centered at coordinates (${Math.round(circle.x)}, ${Math.round(circle.y)}) with radius ${Math.round(circle.radius)} pixels. This circle indicates the main clothing item to isolate.`
+        : '';
+      
       // Use AI to generate background-removed version
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Analyze this clothing image and describe it in detail for background removal purposes. 
-        Describe: the type of clothing, its colors, patterns, shape, and any distinctive features.
+        ${circleInfo}
+        Describe: the type of clothing, its colors, patterns, shape, and any distinctive features within the selection area.
         This will help create a clean cutout of just the clothing item.`,
         file_urls: [originalUrl],
         response_json_schema: {
@@ -59,17 +73,15 @@ export default function ImageRefiner({ originalImage, onRefinementComplete }) {
   const handleRetry = () => {
     setRefinedImage(null);
     setShowComparison(false);
-    removeBackground();
+    setShowCircleSelector(true);
+    setSelectionCircle(null);
   };
 
-  // Auto-start processing when component mounts
-  React.useEffect(() => {
-    if (!refinedImage && !isProcessing) {
-      removeBackground();
-    }
-  }, []);
-
   const originalPreview = URL.createObjectURL(originalImage);
+
+  if (showCircleSelector) {
+    return <CircleSelector image={originalImage} onSelectionComplete={handleCircleSelection} />;
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto">
