@@ -14,8 +14,17 @@ export default function Measurements() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadProject();
+    checkAuth();
   }, []);
+
+  const checkAuth = async () => {
+    const isAuth = await base44.auth.isAuthenticated();
+    if (!isAuth) {
+      base44.auth.redirectToLogin(createPageUrl('Measurements'));
+      return;
+    }
+    loadProject();
+  };
 
   const loadProject = async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -85,7 +94,7 @@ export default function Measurements() {
           className="text-center mb-8"
         >
           <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent drop-shadow-lg">
-            ✨ Print Your Fit ✨
+            ✨ Print A Fit ✨
           </h1>
           <p className="text-lg text-gray-700 mt-2 font-medium">
             Enter your measurements for a perfect fit
