@@ -57,6 +57,7 @@ import Settings from './pages/Settings';
 import SuperbowlChallenge from './pages/SuperbowlChallenge';
 import Upload from './pages/Upload';
 import ValentinesGallery from './pages/ValentinesGallery';
+import AIPatternGenerator from './pages/AIPatternGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -71,6 +72,7 @@ export const PAGES = {
     "SuperbowlChallenge": SuperbowlChallenge,
     "Upload": Upload,
     "ValentinesGallery": ValentinesGallery,
+    "AIPatternGenerator": AIPatternGenerator,
 }
 
 export const pagesConfig = {

@@ -5,12 +5,15 @@ import { base44 } from '@/api/base44Client';
 import FloatingShapes from '../components/ui/FloatingShapes';
 import ProgressSteps from '../components/ui/ProgressSteps';
 import MeasurementForm from '../components/measurements/MeasurementForm';
+import TutorialOverlay from '../components/tutorial/TutorialOverlay';
+import { measurementTutorial } from '../components/tutorial/tutorialSteps';
 import { createPageUrl } from '@/utils';
 import { Loader2 } from 'lucide-react';
 
 export default function Measurements() {
   const [project, setProject] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -84,8 +87,16 @@ export default function Measurements() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pb-20 md:pb-8">
       <FloatingShapes />
+      
+      {showTutorial && (
+        <TutorialOverlay
+          steps={measurementTutorial}
+          tutorialKey="measurements"
+          onComplete={() => setShowTutorial(false)}
+        />
+      )}
       
       <div className="relative z-10 container mx-auto px-4 py-8">
         <motion.div

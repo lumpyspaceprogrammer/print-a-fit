@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Sparkles, Upload, Wand2, Ruler, Scissors, Star, Heart, Zap, ArrowRight, Users } from 'lucide-react';
 import FloatingShapes from '../components/ui/FloatingShapes';
 import GlowButton from '../components/ui/GlowButton';
 import GlowCard from '../components/ui/GlowCard';
+import TutorialOverlay from '../components/tutorial/TutorialOverlay';
+import { homeTutorial } from '../components/tutorial/tutorialSteps';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 
 export default function Home() {
+  const [showTutorial, setShowTutorial] = useState(true);
+
   const features = [
     {
       icon: Upload,
@@ -43,6 +47,14 @@ export default function Home() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
       <FloatingShapes />
+      
+      {showTutorial && (
+        <TutorialOverlay
+          steps={homeTutorial}
+          tutorialKey="home"
+          onComplete={() => setShowTutorial(false)}
+        />
+      )}
       
       <div className="relative z-10">
         {/* Hero Section */}
@@ -99,6 +111,7 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
+              className="flex flex-col items-center gap-4"
             >
               <GlowButton 
                 variant="primary" 
@@ -112,10 +125,19 @@ export default function Home() {
                   }
                 }}
               >
-                <Star className="w-6 h-6 mr-2 inline animate-spin" style={{ animationDuration: '3s' }} />
-                🎉 Make Your First Outfit For FREE! 🎉
+                <Upload className="w-6 h-6 mr-2 inline" />
+                Upload Photo & Create Pattern
                 <ArrowRight className="w-6 h-6 ml-2 inline" />
               </GlowButton>
+
+              <div className="text-sm text-gray-600 dark:text-gray-400 font-bold">OR</div>
+
+              <Link to={createPageUrl('AIPatternGenerator')}>
+                <GlowButton variant="secondary" className="text-lg px-8 py-4">
+                  <Wand2 className="w-5 h-5 mr-2 inline" />
+                  Describe & Generate with AI
+                </GlowButton>
+              </Link>
             </motion.div>
           </motion.div>
 
