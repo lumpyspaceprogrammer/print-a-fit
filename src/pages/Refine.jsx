@@ -5,12 +5,15 @@ import { base44 } from '@/api/base44Client';
 import FloatingShapes from '../components/ui/FloatingShapes';
 import ProgressSteps from '../components/ui/ProgressSteps';
 import ImageRefiner from '../components/refine/ImageRefiner';
+import InspirationPanel from '../components/refine/InspirationPanel';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { createPageUrl } from '@/utils';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles, Scissors } from 'lucide-react';
 
 export default function Refine() {
   const [project, setProject] = useState(null);
   const [originalFile, setOriginalFile] = useState(null);
+  const [originalImageUrl, setOriginalImageUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -43,6 +46,7 @@ export default function Refine() {
       
       if (foundProject && foundProject.original_image_url) {
         setProject(foundProject);
+        setOriginalImageUrl(foundProject.original_image_url);
         
         // Fetch the original image as a file
         const response = await fetch(foundProject.original_image_url);
@@ -76,7 +80,7 @@ export default function Refine() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -88,7 +92,7 @@ export default function Refine() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pb-20 md:pb-8">
       <FloatingShapes />
       
       <div className="relative z-10 container mx-auto px-4 py-8">
@@ -114,10 +118,35 @@ export default function Refine() {
           className="mt-8"
         >
           {originalFile && (
-            <ImageRefiner 
-              originalImage={originalFile}
-              onRefinementComplete={handleRefinementComplete}
-            />
+            <Tabs defaultValue="refine" className="w-full max-w-4xl mx-auto">
+              <TabsList className="grid w-full grid-cols-2 mb-6 border-4 border-black dark:border-white bg-white dark:bg-gray-800 rounded-xl p-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+                <TabsTrigger 
+                  value="refine" 
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-400 data-[state=active]:to-purple-400 data-[state=active]:text-white rounded-lg font-bold flex items-center gap-2 select-none"
+                >
+                  <Scissors className="w-4 h-4" />
+                  Refine Image
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="inspiration"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-400 data-[state=active]:to-cyan-400 data-[state=active]:text-white rounded-lg font-bold flex items-center gap-2 select-none"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  AI Inspiration
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="refine" className="mt-0">
+                <ImageRefiner
+                  originalImage={originalFile}
+                  onRefinementComplete={handleRefinementComplete}
+                />
+              </TabsContent>
+              
+              <TabsContent value="inspiration" className="mt-0">
+                <InspirationPanel imageUrl={originalImageUrl} />
+              </TabsContent>
+            </Tabs>
           )}
         </motion.div>
 
