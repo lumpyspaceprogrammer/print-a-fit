@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import MobileSelect from '../ui/MobileSelect';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import MeasurementDiagram, { diagrams } from './MeasurementDiagram';
+import Interactive3DModel from './Interactive3DModel';
 
 const clothingTypes = [
   { value: 'top', label: '👕 Top / Shirt / Blouse' },
@@ -21,6 +22,7 @@ export default function MeasurementForm({ refinedImage, onMeasurementsSubmit }) 
   const [clothingType, setClothingType] = useState('');
   const [measurements, setMeasurements] = useState({});
   const [unit, setUnit] = useState('inches');
+  const [activeMeasurement, setActiveMeasurement] = useState(null);
 
   const currentDiagram = diagrams[clothingType];
 
@@ -61,7 +63,18 @@ export default function MeasurementForm({ refinedImage, onMeasurementsSubmit }) 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
             >
+              <GlowCard glowColor="cyan" className="p-4">
+                <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                  Interactive 3D Guide
+                </h3>
+                <Interactive3DModel
+                  clothingType={clothingType}
+                  activeMeasurement={activeMeasurement}
+                  onMeasurementClick={setActiveMeasurement}
+                />
+              </GlowCard>
               <MeasurementDiagram clothingType={clothingType} />
             </motion.div>
           )}
@@ -142,8 +155,10 @@ export default function MeasurementForm({ refinedImage, onMeasurementsSubmit }) 
                           min="0"
                           value={measurements[m.key] || ''}
                           onChange={(e) => handleMeasurementChange(m.key, e.target.value)}
+                          onFocus={() => setActiveMeasurement(m.key)}
+                          onBlur={() => setActiveMeasurement(null)}
                           placeholder={`Enter ${m.label.split(':')[1]?.trim() || m.label}`}
-                          className="border-3 border-black rounded-xl h-12 text-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] focus:ring-2 focus:ring-purple-400"
+                          className="border-3 border-black dark:border-white rounded-xl h-12 text-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,1)] focus:ring-2 focus:ring-purple-400"
                           style={{ borderColor: measurements[m.key] ? m.color : undefined }}
                         />
                         <span className="text-sm font-bold text-gray-500 min-w-[40px]">
