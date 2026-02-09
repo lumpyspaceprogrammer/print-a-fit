@@ -88,7 +88,23 @@ export default function Community() {
   const clothingTypes = ['all', 'top', 'bottom', 'dress', 'outerwear', 'jumpsuit'];
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pb-20 md:pb-8">
+      {/* Pull to refresh indicator */}
+      {pullDistance > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed top-16 left-1/2 -translate-x-1/2 z-50"
+        >
+          <motion.div
+            animate={{ rotate: isRefreshing ? 360 : 0 }}
+            transition={{ duration: 1, repeat: isRefreshing ? Infinity : 0, ease: "linear" }}
+            className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 border-3 border-black dark:border-white flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,1)]"
+          >
+            <Loader2 className="w-5 h-5 text-purple-500" />
+          </motion.div>
+        </motion.div>
+      )}
       <FloatingShapes />
       
       <div className="relative z-10 container mx-auto px-4 py-8">
