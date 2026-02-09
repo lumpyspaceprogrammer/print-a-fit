@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Users, Sparkles, Filter, TrendingUp, Clock, Heart, Loader2, ArrowLeft } from 'lucide-react';
@@ -8,6 +8,8 @@ import GlowCard from '../components/ui/GlowCard';
 import GlowButton from '../components/ui/GlowButton';
 import ProjectCard from '../components/showcase/ProjectCard';
 import AISuggestions from '../components/showcase/AISuggestions';
+import TutorialOverlay from '../components/tutorial/TutorialOverlay';
+import { communityTutorial } from '../components/tutorial/tutorialSteps';
 import MobileSelect from '../components/ui/MobileSelect';
 import { createPageUrl } from '@/utils';
 
@@ -17,6 +19,10 @@ export default function Community() {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
+  const [showTutorial, setShowTutorial] = useState(true);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const startYRef = useRef(0);
 
   useEffect(() => {
     loadData();
@@ -89,6 +95,14 @@ export default function Community() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pb-20 md:pb-8">
+      {showTutorial && (
+        <TutorialOverlay
+          steps={communityTutorial}
+          tutorialKey="community"
+          onComplete={() => setShowTutorial(false)}
+        />
+      )}
+      
       {/* Pull to refresh indicator */}
       {pullDistance > 0 && (
         <motion.div
