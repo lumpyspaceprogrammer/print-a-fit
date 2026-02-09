@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import FloatingShapes from '../components/ui/FloatingShapes';
 import ProgressSteps from '../components/ui/ProgressSteps';
 import PatternViewer from '../components/pattern/PatternViewer';
+import AIPatternReview from '../components/pattern/AIPatternReview';
 import GlowButton from '../components/ui/GlowButton';
 import UpgradeModal from '../components/monetization/UpgradeModal';
 import { createPageUrl } from '@/utils';
@@ -15,6 +16,7 @@ export default function Pattern() {
   const [isLoading, setIsLoading] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [subscription, setSubscription] = useState(null);
+  const [showReview, setShowReview] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,7 +77,7 @@ export default function Pattern() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -87,7 +89,7 @@ export default function Pattern() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pb-20 md:pb-8">
       <FloatingShapes />
       
       <div className="relative z-10 container mx-auto px-4 py-8">
@@ -110,9 +112,14 @@ export default function Pattern() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="mt-8"
+          className="mt-8 max-w-6xl mx-auto"
         >
-          {project && (
+          {project && showReview ? (
+            <AIPatternReview
+              project={project}
+              onReviewComplete={() => setShowReview(false)}
+            />
+          ) : project && (
             <PatternViewer 
               refinedImage={project.refined_image_url}
               measurements={project.measurements}
