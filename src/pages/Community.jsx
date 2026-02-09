@@ -8,7 +8,7 @@ import GlowCard from '../components/ui/GlowCard';
 import GlowButton from '../components/ui/GlowButton';
 import ProjectCard from '../components/showcase/ProjectCard';
 import AISuggestions from '../components/showcase/AISuggestions';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import MobileSelect from '../components/ui/MobileSelect';
 import { createPageUrl } from '@/utils';
 
 export default function Community() {
@@ -153,20 +153,19 @@ export default function Community() {
           <GlowCard glowColor="cyan" className="p-4">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
-                <Filter className="w-5 h-5 text-purple-500" />
-                <span className="font-bold text-sm">Filter:</span>
-                <Select value={filter} onValueChange={setFilter}>
-                  <SelectTrigger className="w-32 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="border-2 border-black">
-                    {clothingTypes.map(type => (
-                      <SelectItem key={type} value={type} className="capitalize">
-                        {type === 'all' ? '✨ All Types' : type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Filter className="w-5 h-5 text-purple-500 dark:text-purple-400" />
+                <span className="font-bold text-sm dark:text-white">Filter:</span>
+                <MobileSelect
+                  value={filter}
+                  onValueChange={setFilter}
+                  options={clothingTypes.map(type => ({
+                    value: type,
+                    label: type === 'all' ? '✨ All Types' : type.charAt(0).toUpperCase() + type.slice(1)
+                  }))}
+                  placeholder="Filter by type"
+                  label="Filter by Clothing Type"
+                  className="w-32"
+                />
               </div>
 
               <div className="flex items-center gap-2">

@@ -5,7 +5,7 @@ import GlowCard from '../ui/GlowCard';
 import GlowButton from '../ui/GlowButton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import MobileSelect from '../ui/MobileSelect';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import MeasurementDiagram, { diagrams } from './MeasurementDiagram';
 
@@ -77,21 +77,16 @@ export default function MeasurementForm({ refinedImage, onMeasurementsSubmit }) 
 
             {/* Clothing Type Selection */}
             <div className="mb-6">
-              <Label className="text-sm font-bold text-gray-700 mb-2 block">
+              <Label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">
                 What type of clothing is this?
               </Label>
-              <Select value={clothingType} onValueChange={setClothingType}>
-                <SelectTrigger className="border-3 border-black rounded-xl h-14 text-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                  <SelectValue placeholder="Select clothing type..." />
-                </SelectTrigger>
-                <SelectContent className="border-3 border-black">
-                  {clothingTypes.map(type => (
-                    <SelectItem key={type.value} value={type.value} className="text-lg py-3">
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MobileSelect
+                value={clothingType}
+                onValueChange={setClothingType}
+                options={clothingTypes}
+                placeholder="Select clothing type..."
+                label="Choose Clothing Type"
+              />
             </div>
 
             {/* Unit Toggle */}

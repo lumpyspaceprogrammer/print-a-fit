@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Shirt, Sparkles, Scissors, Palette } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import MobileSelect from '../ui/MobileSelect';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import GlowCard from '../ui/GlowCard';
 
@@ -54,25 +54,17 @@ export default function PatternCustomizer({ options, onOptionsChange }) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Label className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+          <Label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <Shirt className="w-4 h-4 text-pink-500" />
             Fabric Type
           </Label>
-          <Select value={options.fabricType} onValueChange={(v) => handleChange('fabricType', v)}>
-            <SelectTrigger className="border-3 border-black rounded-xl h-12 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-              <SelectValue placeholder="Select fabric type..." />
-            </SelectTrigger>
-            <SelectContent className="border-3 border-black">
-              {fabricTypes.map(fabric => (
-                <SelectItem key={fabric.value} value={fabric.value} className="py-3">
-                  <div>
-                    <p className="font-bold">{fabric.label}</p>
-                    <p className="text-xs text-gray-500">{fabric.description}</p>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MobileSelect
+            value={options.fabricType}
+            onValueChange={(v) => handleChange('fabricType', v)}
+            options={fabricTypes.map(f => ({ value: f.value, label: f.label }))}
+            placeholder="Select fabric type..."
+            label="Choose Fabric Type"
+          />
         </motion.div>
 
         {/* Style Modifier */}
