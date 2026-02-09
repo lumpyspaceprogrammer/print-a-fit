@@ -53,9 +53,9 @@ export default function Upload() {
           }
           setSubscription(userSub);
           
-          // Show Superbowl popup if not entered
-          if (!userSub.superbowl_entry_submitted) {
-            setTimeout(() => setShowSuperbowlPopup(true), 1000);
+          // Show Valentines popup if not created
+          if (!userSub.valentines_gift_created) {
+            setTimeout(() => setShowValentinesPopup(true), 1000);
           }
         } else {
           // Create new subscription record
@@ -64,15 +64,15 @@ export default function Upload() {
             patterns_used_today: 0,
             total_patterns_created: 0,
             has_used_free_pattern: false,
-            superbowl_entry_submitted: false
+            valentines_gift_created: false
           });
           setSubscription(newSub);
-          setTimeout(() => setShowSuperbowlPopup(true), 1000);
+          setTimeout(() => setShowValentinesPopup(true), 1000);
         }
       }
     } catch (error) {
       console.error('Error checking subscription:', error);
-      setTimeout(() => setShowSuperbowlPopup(true), 1000);
+      setTimeout(() => setShowValentinesPopup(true), 1000);
     }
 
     // Check URL params for challenge mode
@@ -131,15 +131,9 @@ export default function Upload() {
           updates.has_used_free_pattern = true;
         }
         
-        if (isSuperbowlChallenge && superbowlTeam) {
-          updates.superbowl_team_pick = superbowlTeam;
-          updates.superbowl_entry_submitted = true;
-          
-          // Create superbowl entry
-          await base44.entities.SuperbowlEntry.create({
-            team_pick: superbowlTeam,
-            project_id: project.id
-          });
+        // Mark Valentine's gift as created
+        if (!subscription.valentines_gift_created) {
+          updates.valentines_gift_created = true;
         }
         
         await base44.entities.UserSubscription.update(subscription.id, updates);
@@ -170,13 +164,11 @@ export default function Upload() {
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
       <FloatingShapes />
       
-      {/* Superbowl Popup */}
-      <SuperbowlPopup
-        isOpen={showSuperbowlPopup}
-        onClose={() => setShowSuperbowlPopup(false)}
-        onJoin={(team) => {
-          setShowSuperbowlPopup(false);
-        }}
+      {/* Valentines Popup */}
+      <ValentinesPopup
+        isOpen={showValentinesPopup}
+        onClose={() => setShowValentinesPopup(false)}
+        onJoin={() => setShowValentinesPopup(false)}
       />
 
       {/* Upgrade Modal */}

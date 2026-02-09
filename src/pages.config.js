@@ -55,6 +55,7 @@ import Pattern from './pages/Pattern';
 import Refine from './pages/Refine';
 import SuperbowlChallenge from './pages/SuperbowlChallenge';
 import Upload from './pages/Upload';
+import ValentinesGallery from './pages/ValentinesGallery';
 import __Layout from './Layout.jsx';
 
 
@@ -67,6 +68,7 @@ export const PAGES = {
     "Refine": Refine,
     "SuperbowlChallenge": SuperbowlChallenge,
     "Upload": Upload,
+    "ValentinesGallery": ValentinesGallery,
 }
 
 export const pagesConfig = {
