@@ -56,6 +56,7 @@ import Refine from './pages/Refine';
 import SuperbowlChallenge from './pages/SuperbowlChallenge';
 import Upload from './pages/Upload';
 import ValentinesGallery from './pages/ValentinesGallery';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
@@ -69,6 +70,7 @@ export const PAGES = {
     "SuperbowlChallenge": SuperbowlChallenge,
     "Upload": Upload,
     "ValentinesGallery": ValentinesGallery,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {
