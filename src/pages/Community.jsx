@@ -21,6 +21,47 @@ export default function Community() {
   useEffect(() => {
     loadData();
   }, []);
+  
+  // Pull-to-refresh for mobile
+  useEffect(() => {
+    const handleTouchStart = (e) => {
+      if (window.scrollY === 0) {
+        startYRef.current = e.touches[0].clientY;
+      }
+    };
+    
+    const handleTouchMove = (e) => {
+      if (window.scrollY === 0 && !isRefreshing) {
+        const currentY = e.touches[0].clientY;
+        const distance = currentY - startYRef.current;
+        if (distance > 0) {
+          setPullDistance(Math.min(distance, 100));
+        }
+      }
+    };
+    
+    const handleTouchEnd = () => {
+      if (pullDistance > 60 && !isRefreshing) {
+        setIsRefreshing(true);
+        loadData().finally(() => {
+          setIsRefreshing(false);
+          setPullDistance(0);
+        });
+      } else {
+        setPullDistance(0);
+      }
+    };
+    
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleTouchEnd);
+    
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [pullDistance, isRefreshing]);
 
   const loadData = async () => {
     try {

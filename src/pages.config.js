@@ -53,10 +53,10 @@ import Home from './pages/Home';
 import Measurements from './pages/Measurements';
 import Pattern from './pages/Pattern';
 import Refine from './pages/Refine';
+import Settings from './pages/Settings';
 import SuperbowlChallenge from './pages/SuperbowlChallenge';
 import Upload from './pages/Upload';
 import ValentinesGallery from './pages/ValentinesGallery';
-import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
@@ -67,10 +67,10 @@ export const PAGES = {
     "Measurements": Measurements,
     "Pattern": Pattern,
     "Refine": Refine,
+    "Settings": Settings,
     "SuperbowlChallenge": SuperbowlChallenge,
     "Upload": Upload,
     "ValentinesGallery": ValentinesGallery,
-    "Settings": Settings,
 }
 
 export const pagesConfig = {

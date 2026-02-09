@@ -18,8 +18,23 @@ export default function BottomTabs() {
     return currentPath === path || currentPath === path + '/';
   };
   
+  // Preserve scroll position when switching tabs
+  const handleTabClick = (path) => {
+    const currentPath = location.pathname;
+    if (currentPath !== path) {
+      sessionStorage.setItem(`scroll_${currentPath}`, window.scrollY.toString());
+    }
+  };
+  
+  React.useEffect(() => {
+    const savedScroll = sessionStorage.getItem(`scroll_${location.pathname}`);
+    if (savedScroll) {
+      window.scrollTo(0, parseInt(savedScroll));
+    }
+  }, [location.pathname]);
+  
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t-4 border-black dark:border-white shadow-[0_-4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[0_-4px_0px_0px_rgba(255,255,255,1)]">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t-4 border-black dark:border-white shadow-[0_-4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[0_-4px_0px_0px_rgba(255,255,255,1)] bottom-tabs-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex justify-around items-center h-16 px-2 select-none">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -29,6 +44,7 @@ export default function BottomTabs() {
             <Link
               key={tab.path}
               to={tab.path}
+              onClick={() => handleTabClick(tab.path)}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full transition-all",
                 active 

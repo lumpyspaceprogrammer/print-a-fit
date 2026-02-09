@@ -159,12 +159,19 @@ export default function Layout({ children }) {
             color: white;
           }
           
-          /* PWA specific styles */
-          @media (display-mode: standalone) {
-            body {
-              padding-top: env(safe-area-inset-top);
-              padding-bottom: env(safe-area-inset-bottom);
-            }
+          /* Safe area insets for iOS WebView */
+          body {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+          }
+          
+          /* Account for safe areas in fixed elements */
+          .nav-header-safe {
+            padding-top: env(safe-area-inset-top);
+          }
+          
+          .bottom-tabs-safe {
+            padding-bottom: env(safe-area-inset-bottom);
           }
         `}
       </style>

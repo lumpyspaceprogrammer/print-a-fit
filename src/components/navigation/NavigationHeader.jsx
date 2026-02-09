@@ -19,8 +19,8 @@ export default function NavigationHeader() {
   };
   
   return (
-    <div className="md:hidden sticky top-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b-4 border-black dark:border-white shadow-[0_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[0_4px_0px_0px_rgba(255,255,255,1)]">
-      <div className="flex items-center justify-between h-14 px-4 select-none">
+    <div className="md:hidden sticky top-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b-4 border-black dark:border-white shadow-[0_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[0_4px_0px_0px_rgba(255,255,255,1)] nav-header-safe">
+      <div className="flex items-center justify-between h-14 px-4 select-none" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         {isHomePage ? (
           <>
             <div className="flex items-center gap-2">
