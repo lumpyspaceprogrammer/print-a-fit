@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import PatternCustomizer, { fabricTypes, styleModifiers, seamFinishes } from './PatternCustomizer';
 import Interactive3DViewer from './Interactive3DViewer';
 import ShareProjectModal from '../showcase/ShareProjectModal';
+import LinkedInShareButton from '../social/LinkedInShareButton';
 import { createPageUrl } from '@/utils';
 
 export default function PatternViewer({ refinedImage, measurements, clothingType, project }) {
@@ -561,6 +562,7 @@ Your AI-Powered Pattern Making Assistant
                 <Share2 className="w-5 h-5 mr-2 inline" />
                 {hasShared ? 'Shared!' : 'Share to Community'}
               </GlowButton>
+              <LinkedInShareButton project={project} />
             </motion.div>
 
             {/* Community Link */}
