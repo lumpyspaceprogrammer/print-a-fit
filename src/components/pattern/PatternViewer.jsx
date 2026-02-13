@@ -10,6 +10,7 @@ import PatternCustomizer, { fabricTypes, styleModifiers, seamFinishes } from './
 import Interactive3DViewer from './Interactive3DViewer';
 import ShareProjectModal from '../showcase/ShareProjectModal';
 import LinkedInShareButton from '../social/LinkedInShareButton';
+import StyleCustomizer from './StyleCustomizer';
 import { createPageUrl } from '@/utils';
 
 export default function PatternViewer({ refinedImage, measurements, clothingType, project }) {
@@ -27,6 +28,7 @@ export default function PatternViewer({ refinedImage, measurements, clothingType
     styleModifier: 'classic',
     seamFinish: 'serged',
   });
+  const [stylePreferences, setStylePreferences] = useState({});
 
   const generatePattern = async () => {
     setIsGenerating(true);
@@ -37,12 +39,33 @@ export default function PatternViewer({ refinedImage, measurements, clothingType
       const styleInfo = styleModifiers.find(s => s.value === customOptions.styleModifier);
       const seamInfo = seamFinishes.find(s => s.value === customOptions.seamFinish);
 
+      // Build detailed style description
+      const styleDetails = [];
+      if (stylePreferences.sleeves) styleDetails.push(`${stylePreferences.sleeves} sleeves`);
+      if (stylePreferences.necklines) styleDetails.push(`${stylePreferences.necklines} neckline`);
+      if (stylePreferences.collars) styleDetails.push(`${stylePreferences.collars} collar`);
+      if (stylePreferences.pockets) styleDetails.push(`${stylePreferences.pockets} pockets`);
+      if (stylePreferences.hems) styleDetails.push(`${stylePreferences.hems} hem`);
+      
+      const detailedStyleDesc = styleDetails.length > 0 
+        ? `with ${styleDetails.join(', ')}`
+        : '';
+
       // Generate pattern details using AI with customization
       const patternResult = await base44.integrations.Core.InvokeLLM({
         prompt: `You are a professional pattern maker. Create detailed sewing pattern instructions for a ${clothingType} with the following customizations:
 
 FABRIC TYPE: ${fabricInfo?.label || customOptions.fabricType}
 - ${fabricInfo?.description || ''}
+
+STYLE: ${styleInfo?.label || customOptions.styleModifier} (${customOptions.styleModifier}) ${detailedStyleDesc}
+
+DETAILED STYLE FEATURES:
+${stylePreferences.sleeves ? `- Sleeve Type: ${stylePreferences.sleeves} - Incorporate this specific sleeve construction` : ''}
+${stylePreferences.necklines ? `- Neckline: ${stylePreferences.necklines} - Design with this neckline shape` : ''}
+${stylePreferences.collars ? `- Collar: ${stylePreferences.collars} - Add this collar style` : ''}
+${stylePreferences.pockets ? `- Pockets: ${stylePreferences.pockets} - Include these pocket types` : ''}
+${stylePreferences.hems ? `- Hem Finish: ${stylePreferences.hems} - Use this hem treatment` : ''}
 
 STYLE: ${styleInfo?.label || customOptions.styleModifier} (${customOptions.styleModifier})
 - Adjust the pattern to reflect this style. For example:
@@ -125,6 +148,14 @@ Generate comprehensive pattern data including:
       const sketchResult = await base44.integrations.Core.GenerateImage({
         prompt: `Technical flat sketch fashion illustration of a ${customOptions.styleModifier} ${clothingType}. 
         ${patternResult.flat_sketch_description}.
+        
+        SPECIFIC FEATURES TO SHOW CLEARLY:
+        ${stylePreferences.sleeves ? `- ${stylePreferences.sleeves} SLEEVES with accurate shape and detail` : ''}
+        ${stylePreferences.necklines ? `- ${stylePreferences.necklines} NECKLINE with proper proportions` : ''}
+        ${stylePreferences.collars ? `- ${stylePreferences.collars} COLLAR with construction lines` : ''}
+        ${stylePreferences.pockets ? `- ${stylePreferences.pockets} POCKETS with placement marks` : ''}
+        ${stylePreferences.hems ? `- ${stylePreferences.hems} HEM finish detail` : ''}
+        
         Style: Clean black line drawing on white background, professional fashion technical drawing, 
         ${customOptions.styleModifier} aesthetic, front view, showing all seams, darts, and construction details.
         ${customOptions.styleModifier === 'vintage' ? 'Classic proportions, fitted details, retro elements.' : ''}
@@ -362,6 +393,16 @@ Your AI-Powered Pattern Making Assistant
 
             {/* Right: Customization Options */}
             <div className="space-y-4">
+              <GlowCard glowColor="rainbow" className="p-6">
+                <StyleCustomizer
+                  clothingType={clothingType}
+                  stylePreferences={stylePreferences}
+                  onStyleChange={(category, value) => 
+                    setStylePreferences(prev => ({ ...prev, [category]: value }))
+                  }
+                />
+              </GlowCard>
+              
               <PatternCustomizer 
                 options={customOptions}
                 onOptionsChange={setCustomOptions}
