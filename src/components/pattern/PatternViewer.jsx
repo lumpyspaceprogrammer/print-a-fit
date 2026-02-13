@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, FileText, Ruler, Scissors, BookOpen, Loader2, Settings, Sparkles, Share2, Users } from 'lucide-react';
+import { Download, FileText, Ruler, Scissors, BookOpen, Loader2, Settings, Sparkles, Share2, Users, GitBranch } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import GlowCard from '../ui/GlowCard';
 import GlowButton from '../ui/GlowButton';
@@ -11,6 +11,8 @@ import Interactive3DViewer from './Interactive3DViewer';
 import ShareProjectModal from '../showcase/ShareProjectModal';
 import LinkedInShareButton from '../social/LinkedInShareButton';
 import StyleCustomizer from './StyleCustomizer';
+import PatternVersionManager from './PatternVersionManager';
+import VersionComparisonModal from './VersionComparisonModal';
 import { createPageUrl } from '@/utils';
 
 export default function PatternViewer({ refinedImage, measurements, clothingType, project }) {
@@ -21,6 +23,8 @@ export default function PatternViewer({ refinedImage, measurements, clothingType
   const [modelAdjustments, setModelAdjustments] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [hasShared, setHasShared] = useState(false);
+  const [showVersionManager, setShowVersionManager] = useState(false);
+  const [compareVersions, setCompareVersions] = useState(null);
   
   // Customization options
   const [customOptions, setCustomOptions] = useState({
@@ -309,6 +313,15 @@ Your AI-Powered Pattern Making Assistant
     setModelAdjustments(adjustments);
   };
 
+  // Handle version restoration
+  const handleRestoreVersion = (versionData) => {
+    setCustomOptions(versionData.customOptions);
+    setStylePreferences(versionData.stylePreferences);
+    setPatternData(versionData.patternData);
+    setShowVersionManager(false);
+    setActiveTab('sketch');
+  };
+
   if (isGenerating) {
     return (
       <div className="w-full max-w-5xl mx-auto">
@@ -441,19 +454,22 @@ Your AI-Powered Pattern Making Assistant
               <div className="lg:col-span-2">
                 <GlowCard glowColor="cyan" className="p-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid grid-cols-4 gap-2 bg-gradient-to-r from-pink-100 via-purple-100 to-cyan-100 p-2 rounded-xl border-3 border-black">
-                      <TabsTrigger value="sketch" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
-                        <FileText className="w-4 h-4 mr-1" /> Sketch
-                      </TabsTrigger>
-                      <TabsTrigger value="pattern" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
-                        <Ruler className="w-4 h-4 mr-1" /> Pattern
-                      </TabsTrigger>
-                      <TabsTrigger value="instructions" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
-                        <BookOpen className="w-4 h-4 mr-1" /> Steps
-                      </TabsTrigger>
-                      <TabsTrigger value="info" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
-                        <Settings className="w-4 h-4 mr-1" /> Info
-                      </TabsTrigger>
+                    <TabsList className="grid grid-cols-5 gap-2 bg-gradient-to-r from-pink-100 via-purple-100 to-cyan-100 p-2 rounded-xl border-3 border-black">
+                     <TabsTrigger value="sketch" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
+                       <FileText className="w-4 h-4 mr-1" /> Sketch
+                     </TabsTrigger>
+                     <TabsTrigger value="pattern" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
+                       <Ruler className="w-4 h-4 mr-1" /> Pattern
+                     </TabsTrigger>
+                     <TabsTrigger value="instructions" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
+                       <BookOpen className="w-4 h-4 mr-1" /> Steps
+                     </TabsTrigger>
+                     <TabsTrigger value="versions" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
+                       <GitBranch className="w-4 h-4 mr-1" /> Versions
+                     </TabsTrigger>
+                     <TabsTrigger value="info" className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold text-xs">
+                       <Settings className="w-4 h-4 mr-1" /> Info
+                     </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="sketch" className="mt-6">
@@ -518,6 +534,16 @@ Your AI-Powered Pattern Making Assistant
                           </motion.div>
                         ))}
                       </div>
+                    </TabsContent>
+
+                    <TabsContent value="versions" className="mt-6">
+                      <PatternVersionManager
+                        projectId={project.id}
+                        currentPattern={patternData}
+                        customOptions={customOptions}
+                        stylePreferences={stylePreferences}
+                        onRestoreVersion={handleRestoreVersion}
+                      />
                     </TabsContent>
 
                     <TabsContent value="info" className="mt-6">
