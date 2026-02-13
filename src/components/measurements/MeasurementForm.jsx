@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Ruler, ArrowRight, Info } from 'lucide-react';
+import { Ruler, ArrowRight, Info, FileUp } from 'lucide-react';
 import GlowCard from '../ui/GlowCard';
 import GlowButton from '../ui/GlowButton';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,10 @@ import MobileSelect from '../ui/MobileSelect';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import MeasurementDiagram, { diagrams } from './MeasurementDiagram';
 import Interactive3DModel from './Interactive3DModel';
+import BodyScanUploader from './BodyScanUploader';
+import AIAssistant from './AIAssistant';
+import MeasurementTutorials from './MeasurementTutorials';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const clothingTypes = [
   { value: 'top', label: '👕 Top / Shirt / Blouse' },
@@ -23,6 +27,7 @@ export default function MeasurementForm({ refinedImage, onMeasurementsSubmit }) 
   const [measurements, setMeasurements] = useState({});
   const [unit, setUnit] = useState('inches');
   const [activeMeasurement, setActiveMeasurement] = useState(null);
+  const [activeTab, setActiveTab] = useState('manual');
 
   const currentDiagram = diagrams[clothingType];
 
@@ -31,6 +36,16 @@ export default function MeasurementForm({ refinedImage, onMeasurementsSubmit }) 
       ...prev,
       [key]: value
     }));
+  };
+
+  const handleBodyScanImport = (scanData) => {
+    if (scanData.measurements) {
+      setMeasurements(scanData.measurements);
+    }
+    if (scanData.unit) {
+      setUnit(scanData.unit);
+    }
+    setActiveTab('manual');
   };
 
   const handleSubmit = () => {
@@ -44,7 +59,14 @@ export default function MeasurementForm({ refinedImage, onMeasurementsSubmit }) 
   const isComplete = clothingType && currentDiagram?.measurements.every(m => measurements[m.key]);
 
   return (
-    <div className="w-full max-w-5xl mx-auto">
+    <div className="w-full max-w-6xl mx-auto">
+      {/* AI Assistant */}
+      <AIAssistant 
+        measurements={measurements}
+        clothingType={clothingType}
+        unit={unit}
+      />
+
       <div className="grid md:grid-cols-2 gap-6">
         {/* Left: Image & Diagram */}
         <div className="space-y-4">
@@ -87,6 +109,21 @@ export default function MeasurementForm({ refinedImage, onMeasurementsSubmit }) 
               <Ruler className="w-6 h-6 text-purple-500" />
               Enter Your Measurements
             </h2>
+
+            {/* Tabs for Manual vs Import */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+                <TabsTrigger value="import" className="flex items-center gap-1">
+                  <FileUp className="w-4 h-4" />
+                  Import Data
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="import" className="mt-4">
+                <BodyScanUploader onMeasurementsExtracted={handleBodyScanImport} />
+              </TabsContent>
+            </Tabs>
 
             {/* Clothing Type Selection */}
             <div className="mb-6">
@@ -190,6 +227,9 @@ export default function MeasurementForm({ refinedImage, onMeasurementsSubmit }) 
               </motion.div>
             )}
           </GlowCard>
+
+          {/* Tutorials Section */}
+          <MeasurementTutorials />
         </div>
       </div>
     </div>
