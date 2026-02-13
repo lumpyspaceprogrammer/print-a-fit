@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AIPatternGenerator from './pages/AIPatternGenerator';
 import Community from './pages/Community';
 import Contact from './pages/Contact';
 import Home from './pages/Home';
@@ -57,11 +58,11 @@ import Settings from './pages/Settings';
 import SuperbowlChallenge from './pages/SuperbowlChallenge';
 import Upload from './pages/Upload';
 import ValentinesGallery from './pages/ValentinesGallery';
-import AIPatternGenerator from './pages/AIPatternGenerator';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AIPatternGenerator": AIPatternGenerator,
     "Community": Community,
     "Contact": Contact,
     "Home": Home,
@@ -72,7 +73,6 @@ export const PAGES = {
     "SuperbowlChallenge": SuperbowlChallenge,
     "Upload": Upload,
     "ValentinesGallery": ValentinesGallery,
-    "AIPatternGenerator": AIPatternGenerator,
 }
 
 export const pagesConfig = {

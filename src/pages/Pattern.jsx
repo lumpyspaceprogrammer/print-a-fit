@@ -6,6 +6,7 @@ import FloatingShapes from '../components/ui/FloatingShapes';
 import ProgressSteps from '../components/ui/ProgressSteps';
 import PatternViewer from '../components/pattern/PatternViewer';
 import AIPatternReview from '../components/pattern/AIPatternReview';
+import FabricRecommendation from '../components/fabric/FabricRecommendation';
 import GlowButton from '../components/ui/GlowButton';
 import UpgradeModal from '../components/monetization/UpgradeModal';
 import { createPageUrl } from '@/utils';
@@ -17,6 +18,7 @@ export default function Pattern() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [showReview, setShowReview] = useState(true);
+  const [showFabricRecommendations, setShowFabricRecommendations] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -112,20 +114,52 @@ export default function Pattern() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="mt-8 max-w-6xl mx-auto"
+          className="mt-8 max-w-6xl mx-auto space-y-6"
         >
           {project && showReview ? (
             <AIPatternReview
               project={project}
-              onReviewComplete={() => setShowReview(false)}
+              onReviewComplete={() => {
+                setShowReview(false);
+                setShowFabricRecommendations(true);
+              }}
             />
+          ) : project && showFabricRecommendations ? (
+            <>
+              <FabricRecommendation
+                clothingType={project.clothing_type}
+                measurements={project.measurements?.values}
+                styleModifier={project.pattern_data?.style}
+                project={project}
+              />
+              <div className="flex justify-center">
+                <GlowButton
+                  onClick={() => setShowFabricRecommendations(false)}
+                  variant="primary"
+                >
+                  Continue to Pattern
+                </GlowButton>
+              </div>
+            </>
           ) : project && (
-            <PatternViewer 
-              refinedImage={project.refined_image_url}
-              measurements={project.measurements}
-              clothingType={project.clothing_type}
-              project={project}
-            />
+            <>
+              <PatternViewer 
+                refinedImage={project.refined_image_url}
+                measurements={project.measurements}
+                clothingType={project.clothing_type}
+                project={project}
+              />
+              {!showFabricRecommendations && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setShowFabricRecommendations(true)}
+                    className="text-purple-600 hover:text-purple-700 underline font-medium text-sm"
+                  >
+                    View Fabric Recommendations Again
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </motion.div>
 
