@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import GlowCard from '../ui/GlowCard';
 import Interactive3DViewer from './Interactive3DViewer';
 
-export default function TextToPattern3D() {
+export default function TextToPattern3D({ onSwitchToFullPattern }) {
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
@@ -255,11 +255,8 @@ Provide practical values for 3D visualization.`,
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={() => {
-                  // Switch to full pattern generator tab and pre-fill the description
-                  const fullTabTrigger = document.querySelector('[value="full"]');
-                  if (fullTabTrigger) {
-                    fullTabTrigger.click();
-                    // Scroll to top
+                  if (onSwitchToFullPattern) {
+                    onSwitchToFullPattern();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}

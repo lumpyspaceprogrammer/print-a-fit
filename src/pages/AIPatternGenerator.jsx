@@ -36,6 +36,7 @@ export default function AIPatternGenerator() {
   const [clothingType, setClothingType] = useState('');
   const [stylePreference, setStylePreference] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [activeTab, setActiveTab] = useState('3d');
   const navigate = useNavigate();
 
   const handleGenerate = async () => {
@@ -172,7 +173,7 @@ Make it practical and detailed for someone to actually sew this garment.`,
           transition={{ delay: 0.2 }}
           className="mt-8 max-w-4xl mx-auto"
         >
-          <Tabs defaultValue="3d" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 gap-2 bg-gradient-to-r from-pink-100 via-purple-100 to-cyan-100 p-2 rounded-xl border-3 border-black mb-6">
               <TabsTrigger 
                 value="3d" 
@@ -189,7 +190,7 @@ Make it practical and detailed for someone to actually sew this garment.`,
             </TabsList>
 
             <TabsContent value="3d">
-              <TextToPattern3D />
+              <TextToPattern3D onSwitchToFullPattern={() => setActiveTab('full')} />
             </TabsContent>
 
             <TabsContent value="full">
