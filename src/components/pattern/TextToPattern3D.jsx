@@ -245,6 +245,38 @@ Provide practical values for 3D visualization.`,
               }
             }}
           />
+
+          {/* Next Steps */}
+          <GlowCard glowColor="pink" className="p-6">
+            <h4 className="font-bold text-lg mb-3">✨ Love your 3D preview? Let's make it real!</h4>
+            <p className="text-sm text-gray-600 mb-4">
+              Want to create a full sewing pattern with measurements, instructions, and printable templates?
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={() => {
+                  // Switch to full pattern generator tab and pre-fill the description
+                  const fullTabTrigger = document.querySelector('[value="full"]');
+                  if (fullTabTrigger) {
+                    fullTabTrigger.click();
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold border-3 border-black rounded-xl px-6 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transform hover:scale-105 active:scale-95 transition-all"
+              >
+                <Wand2 className="w-5 h-5 mr-2 inline" />
+                Generate Full Pattern
+              </Button>
+              <Button
+                onClick={() => setShowPreview(false)}
+                variant="outline"
+                className="flex-1 border-3 border-black rounded-xl px-6 py-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold"
+              >
+                Create Another 3D Model
+              </Button>
+            </div>
+          </GlowCard>
         </motion.div>
       )}
     </div>
