@@ -11,6 +11,8 @@ import ProgressSteps from '../components/ui/ProgressSteps';
 import MobileSelect from '../components/ui/MobileSelect';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import TextToPattern3D from '../components/pattern/TextToPattern3D';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const clothingTypes = [
   { value: 'top', label: '👕 Top / Shirt / Blouse' },
@@ -168,9 +170,30 @@ Make it practical and detailed for someone to actually sew this garment.`,
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="mt-8 max-w-3xl mx-auto"
+          className="mt-8 max-w-4xl mx-auto"
         >
-          <GlowCard glowColor="rainbow" className="p-8">
+          <Tabs defaultValue="3d" className="w-full">
+            <TabsList className="grid grid-cols-2 gap-2 bg-gradient-to-r from-pink-100 via-purple-100 to-cyan-100 p-2 rounded-xl border-3 border-black mb-6">
+              <TabsTrigger 
+                value="3d" 
+                className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold"
+              >
+                ✨ Text to 3D Model
+              </TabsTrigger>
+              <TabsTrigger 
+                value="full" 
+                className="data-[state=active]:bg-white data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg font-bold"
+              >
+                📋 Full Pattern Generator
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="3d">
+              <TextToPattern3D />
+            </TabsContent>
+
+            <TabsContent value="full">
+              <GlowCard glowColor="rainbow" className="p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 rounded-xl bg-gradient-to-br from-pink-400 to-purple-400 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,1)]">
                 <Wand2 className="w-6 h-6 text-white" />
@@ -263,6 +286,8 @@ Make it practical and detailed for someone to actually sew this garment.`,
               </div>
             </div>
           </GlowCard>
+            </TabsContent>
+          </Tabs>
         </motion.div>
 
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-400/30 to-transparent rounded-full blur-3xl" />

@@ -106,7 +106,7 @@ const colorPresets = [
   { name: 'Pure White', color: '#ffffff' },
 ];
 
-export default function Interactive3DViewer({ clothingType, measurements, onMeasurementsChange }) {
+export default function Interactive3DViewer({ clothingType, measurements, onMeasurementsChange, initialSettings }) {
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
   const meshRef = useRef(null);
@@ -114,21 +114,21 @@ export default function Interactive3DViewer({ clothingType, measurements, onMeas
   const cameraRef = useRef(null);
   
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedTexture, setSelectedTexture] = useState('cotton');
-  const [selectedColor, setSelectedColor] = useState('#e9d5ff');
-  const [customColor, setCustomColor] = useState('#e9d5ff');
+  const [selectedTexture, setSelectedTexture] = useState(initialSettings?.texture || 'cotton');
+  const [selectedColor, setSelectedColor] = useState(initialSettings?.color || '#e9d5ff');
+  const [customColor, setCustomColor] = useState(initialSettings?.color || '#e9d5ff');
   const [lightMode, setLightMode] = useState('day');
   const [isRotating, setIsRotating] = useState(true);
   
   // Measurement adjustments
-  const [adjustments, setAdjustments] = useState({
+  const [adjustments, setAdjustments] = useState(initialSettings?.adjustments || {
     lengthScale: 1,
     widthScale: 1,
     sleeveScale: 1,
   });
 
   // Fabric simulation properties
-  const [fabricProps, setFabricProps] = useState({
+  const [fabricProps, setFabricProps] = useState(initialSettings?.fabricProps || {
     weight: 0.5,
     stretch: 0.3,
     drape: 0.6,
