@@ -129,15 +129,6 @@ export default function Home() {
                 Upload Photo & Create Pattern
                 <ArrowRight className="w-6 h-6 ml-2 inline" />
               </GlowButton>
-
-              <div className="text-sm text-gray-600 dark:text-gray-400 font-bold">OR</div>
-
-              <Link to={createPageUrl('AIPatternGenerator')}>
-                <GlowButton variant="secondary" className="text-lg px-8 py-4">
-                  <Wand2 className="w-5 h-5 mr-2 inline" />
-                  Describe & Generate with AI
-                </GlowButton>
-              </Link>
             </motion.div>
           </motion.div>
 
