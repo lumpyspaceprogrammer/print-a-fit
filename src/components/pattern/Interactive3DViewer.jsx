@@ -399,15 +399,17 @@ export default function Interactive3DViewer({ clothingType, measurements, onMeas
     return new THREE.CapsuleGeometry(width * 0.4, length, 8, 20);
   };
 
-  // Update fabric properties when texture changes
+  // Update fabric properties when texture changes (only if not using initial settings)
   useEffect(() => {
-    const texture = fabricTextures.find(t => t.value === selectedTexture);
-    if (texture) {
-      setFabricProps({
-        weight: texture.weight,
-        stretch: texture.stretch,
-        drape: texture.drape,
-      });
+    if (!initialSettings?.fabricProps) {
+      const texture = fabricTextures.find(t => t.value === selectedTexture);
+      if (texture) {
+        setFabricProps({
+          weight: texture.weight,
+          stretch: texture.stretch,
+          drape: texture.drape,
+        });
+      }
     }
   }, [selectedTexture]);
 
