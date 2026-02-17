@@ -113,6 +113,14 @@ export default function Upload() {
       // Upload the image
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
+      // Track upload event
+      base44.analytics.track({
+        eventName: "upload_photo",
+        properties: {
+          success: true
+        }
+      });
+      
       // Create a new project
       const project = await base44.entities.Project.create({
         original_image_url: file_url,
