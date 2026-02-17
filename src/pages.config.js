@@ -58,6 +58,8 @@ import Settings from './pages/Settings';
 import SuperbowlChallenge from './pages/SuperbowlChallenge';
 import Upload from './pages/Upload';
 import ValentinesGallery from './pages/ValentinesGallery';
+import Support from './pages/Support';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +75,8 @@ export const PAGES = {
     "SuperbowlChallenge": SuperbowlChallenge,
     "Upload": Upload,
     "ValentinesGallery": ValentinesGallery,
+    "Support": Support,
+    "PrivacyPolicy": PrivacyPolicy,
 }
 
 export const pagesConfig = {
