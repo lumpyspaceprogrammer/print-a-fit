@@ -131,11 +131,6 @@ export default function Upload() {
           updates.has_used_free_pattern = true;
         }
         
-        // Mark Valentine's gift as created
-        if (!subscription.valentines_gift_created) {
-          updates.valentines_gift_created = true;
-        }
-        
         await base44.entities.UserSubscription.update(subscription.id, updates);
       }
       
