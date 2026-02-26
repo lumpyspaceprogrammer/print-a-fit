@@ -12,7 +12,6 @@ import { tierData } from '../components/monetization/SubscriptionTiers';
 
 export default function Upload() {
   const [isUploading, setIsUploading] = useState(false);
-  const [showValentinesPopup, setShowValentinesPopup] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [isSuperbowlChallenge, setIsSuperbowlChallenge] = useState(false);

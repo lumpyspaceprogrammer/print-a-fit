@@ -266,6 +266,17 @@ export default function Home() {
           <p className="font-medium">
             Made with 💜 & ✨ by Print A Fit
           </p>
+          <p className="font-medium text-sm mt-1">
+            Created by Skate Byrne
+          </p>
+          <div className="flex items-center justify-center gap-4 mt-2">
+            <a href="https://www.github.com/lumpyspaceprogrammer" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Github className="w-5 h-5" />
+            </a>
+            <a href="https://linkedin.com/in/skatebyrne" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-blue-600 transition-colors">
+              <Linkedin className="w-5 h-5" />
+            </a>
+          </div>
         </footer>
       </div>
 
