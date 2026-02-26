@@ -53,13 +53,13 @@ import Contact from './pages/Contact';
 import Home from './pages/Home';
 import Measurements from './pages/Measurements';
 import Pattern from './pages/Pattern';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import Refine from './pages/Refine';
 import Settings from './pages/Settings';
 import SuperbowlChallenge from './pages/SuperbowlChallenge';
+import Support from './pages/Support';
 import Upload from './pages/Upload';
 import ValentinesGallery from './pages/ValentinesGallery';
-import Support from './pages/Support';
-import PrivacyPolicy from './pages/PrivacyPolicy';
 import __Layout from './Layout.jsx';
 
 
@@ -70,13 +70,13 @@ export const PAGES = {
     "Home": Home,
     "Measurements": Measurements,
     "Pattern": Pattern,
+    "PrivacyPolicy": PrivacyPolicy,
     "Refine": Refine,
     "Settings": Settings,
     "SuperbowlChallenge": SuperbowlChallenge,
+    "Support": Support,
     "Upload": Upload,
     "ValentinesGallery": ValentinesGallery,
-    "Support": Support,
-    "PrivacyPolicy": PrivacyPolicy,
 }
 
 export const pagesConfig = {

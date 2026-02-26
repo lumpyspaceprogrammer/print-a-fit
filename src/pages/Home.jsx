@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Sparkles, Upload, Wand2, Ruler, Scissors, Star, Heart, Zap, ArrowRight, Users } from 'lucide-react';
+import { Sparkles, Upload, Wand2, Ruler, Scissors, Heart, Zap, ArrowRight, Users, Github, Linkedin } from 'lucide-react';
 import FloatingShapes from '../components/ui/FloatingShapes';
 import GlowButton from '../components/ui/GlowButton';
 import GlowCard from '../components/ui/GlowCard';

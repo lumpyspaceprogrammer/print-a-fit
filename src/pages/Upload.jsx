@@ -6,7 +6,6 @@ import { base44 } from '@/api/base44Client';
 import FloatingShapes from '../components/ui/FloatingShapes';
 import ProgressSteps from '../components/ui/ProgressSteps';
 import ImageUploader from '../components/upload/ImageUploader';
-import ValentinesPopup from '../components/valentines/ValentinesPopup';
 import UpgradeModal from '../components/monetization/UpgradeModal';
 import { createPageUrl } from '@/utils';
 import { tierData } from '../components/monetization/SubscriptionTiers';
