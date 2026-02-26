@@ -170,13 +170,6 @@ export default function Upload() {
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200">
       <FloatingShapes />
       
-      {/* Valentines Popup */}
-      <ValentinesPopup
-        isOpen={showValentinesPopup}
-        onClose={() => setShowValentinesPopup(false)}
-        onJoin={() => setShowValentinesPopup(false)}
-      />
-
       {/* Upgrade Modal */}
       <UpgradeModal
         isOpen={showUpgradeModal}
