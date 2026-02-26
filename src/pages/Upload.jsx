@@ -61,12 +61,10 @@ export default function Upload() {
             valentines_gift_created: false
           });
           setSubscription(newSub);
-          setTimeout(() => setShowValentinesPopup(true), 1000);
         }
       }
     } catch (error) {
       console.error('Error checking subscription:', error);
-      setTimeout(() => setShowValentinesPopup(true), 1000);
     }
 
     // Check URL params for challenge mode
