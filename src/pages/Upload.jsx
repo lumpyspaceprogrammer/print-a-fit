@@ -51,10 +51,6 @@ export default function Upload() {
           }
           setSubscription(userSub);
           
-          // Show Valentines popup if not created
-          if (!userSub.valentines_gift_created) {
-            setTimeout(() => setShowValentinesPopup(true), 1000);
-          }
         } else {
           // Create new subscription record
           const newSub = await base44.entities.UserSubscription.create({
