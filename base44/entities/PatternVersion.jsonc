@@ -1,0 +1,62 @@
+{
+  "name": "PatternVersion",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Reference to the parent Project"
+    },
+    "version_name": {
+      "type": "string",
+      "description": "User-defined name for this version"
+    },
+    "custom_options": {
+      "type": "object",
+      "description": "Fabric type, style modifier, seam finish"
+    },
+    "style_preferences": {
+      "type": "object",
+      "description": "Detailed style choices (sleeves, necklines, etc.)"
+    },
+    "pattern_data": {
+      "type": "object",
+      "description": "Complete generated pattern information"
+    },
+    "flat_sketch_url": {
+      "type": "string",
+      "description": "URL to the flat sketch image"
+    },
+    "pattern_layout_url": {
+      "type": "string",
+      "description": "URL to the pattern layout image"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mark as favorite version"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of this pattern version",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "project_id",
+    "version_name"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "original_image_url": {
+      "type": "string",
+      "description": "Original uploaded clothing image"
+    },
+    "refined_image_url": {
+      "type": "string",
+      "description": "Background-removed image"
+    },
+    "clothing_type": {
+      "type": "string",
+      "enum": [
+        "top",
+        "bottom",
+        "dress",
+        "outerwear",
+        "jumpsuit"
+      ],
+      "description": "Type of clothing"
+    },
+    "measurements": {
+      "type": "object",
+      "description": "User's measurements in inches"
+    },
+    "pattern_data": {
+      "type": "object",
+      "description": "Generated pattern information"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "uploaded",
+        "refined",
+        "measured",
+        "completed"
+      ],
+      "default": "uploaded"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of the project",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "original_image_url"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
